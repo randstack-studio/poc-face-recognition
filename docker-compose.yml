@@ -16,7 +16,7 @@ services:
       - F:\Projex\Endavo\BNIL Face Recognition\poc\web-fr-opencv-indent\.env:/usr/src/app/.env
       - F:\Projex\Endavo\BNIL Face Recognition\poc\web-fr-opencv-indent\database\:/usr/src/app/database
     env_file:
-      - .env
+      - .env.example
     command: bash -c "npm run dev"
 
   mariadb:
