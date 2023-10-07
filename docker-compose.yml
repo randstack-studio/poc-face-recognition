@@ -1,12 +1,20 @@
 version: '3.7'
 services:
+  appserver:
+    build: ../virtual-server
+    container_name: webserver-fr-opencv
+    restart: always
+    ports:
+      - '9085:80'
+      - '9485:443'
+
   app:
     build: .
     container_name: web-fr-opencv
     restart: always
     ports:
-      - '3333:3333'
-      - '4000:4000'
+      - '8085:8085'
+      - '8086:8086'
     volumes:
       - F:\Projex\Endavo\BNIL Face Recognition\poc\web-fr-opencv-indent\app\:/usr/src/app/app
       - F:\Projex\Endavo\BNIL Face Recognition\poc\web-fr-opencv-indent\config\:/usr/src/app/config
@@ -16,7 +24,7 @@ services:
       - F:\Projex\Endavo\BNIL Face Recognition\poc\web-fr-opencv-indent\.env:/usr/src/app/.env
       - F:\Projex\Endavo\BNIL Face Recognition\poc\web-fr-opencv-indent\database\:/usr/src/app/database
     env_file:
-      - .env.example
+      - .env
     command: bash -c "npm run dev"
 
   mariadb:
