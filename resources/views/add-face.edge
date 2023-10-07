@@ -152,7 +152,11 @@
     let validateLoading = document.getElementById('validate_loading');
     let modalFooter = document.getElementById('modal_footer');
     const save = document.querySelector('.save');
-    const socket = io("http://127.0.0.1:4000", {
+    // const socket = io("http://127.0.0.1:8086", {
+    //   transports: ["websocket"], // Use WebSocket transport
+    //   withCredentials: true,
+    // });
+    const socket = io("http://34.101.194.159:8086", {
       transports: ["websocket"], // Use WebSocket transport
       withCredentials: true,
     });
