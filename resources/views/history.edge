@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+    integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+  <style>
+    .menu-container {
+      display: flex;
+      justify-content: center;
+
+
+    }
+
+    .menu-container .menu {
+      max-width: 1185px;
+      width: 100%;
+    }
+
+    .box {
+      background-color: #FFFFFF;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+
+    }
+
+    .box-title {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 24px;
+      color: #000000;
+      margin-bottom: 0px;
+    }
+
+    .box-description {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 21px;
+      color: #757373;
+      margin-bottom: 0px;
+    }
+
+    .save:disabled {
+      background-color: #F15921;
+      border: transparent;
+      color: white;
+      padding: 10px 15px;
+      width: 150px;
+      border-radius: 10px;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .box-image {
+      width: 40%;
+      height: 200px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin-bottom: 20px;
+    }
+
+    .box-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="menu-container">
+    <!-- <Navbar /> -->
+    <div class="menu">
+      <div style="margin-top:20px;margin-bottom:20px; ">
+        <div
+          style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px; display:flex; align-items:center; gap:10px;">
+          {{-- BACK BUTTON --}}
+          <div style="cursor:pointer;" onclick="window.location.href = '/menu'">
+            <i class="bi bi-arrow-left"></i>
+          </div>
+
+          <p class="txt txt-16 txt-lh-18 txt-cl-turqoise bold mb-0" style="font-size:20px; font-weight:bold;">
+            History Absensi
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        @each(history in histories)
+        <div class="col-md-6" style="margin-bottom:10px;">
+          <div class="box" style="display:flex; flex-direction: column; justify-content:center;">
+            <div class="box-image">
+              <img src={{"/" + history.captured}} style="width:100%;" />
+            </div>
+            <p class="box-title">{{  history.created_at }}</p>
+            <p class="box-description" style="margin-bottom: 10px; margin-top:10px;">{{history.message}}</p>
+            <p class="box-description" style="font-weight: 600;">Status : {{history.status ? 'Valid' : 'Invalid'}}</p>
+          </div>
+        </div>
+        @endeach
+
+      </div>
+    </div>
+  </div>
+  <script>
+
+  </script>
+</body>
+
+</html>

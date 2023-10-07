@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+    integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+  <style>
+    .menu-container {
+      display: flex;
+      justify-content: center;
+
+
+    }
+
+    .menu-container .menu {
+      max-width: 1185px;
+      width: 100%;
+    }
+
+    .box {
+      background-color: #FFFFFF;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+
+    }
+
+    .box-title {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 24px;
+      color: #000000;
+      margin-bottom: 0px;
+    }
+
+    .box-description {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 21px;
+      color: #757373;
+      margin-bottom: 0px;
+    }
+
+    .save:disabled {
+      background-color: #F15921;
+      border: transparent;
+      color: white;
+      padding: 10px 15px;
+      width: 150px;
+      border-radius: 10px;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="menu-container">
+    <!-- <Navbar /> -->
+    <div class="menu">
+      <div class="modal fade" id="submittedModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Tambah Wajah</h5>
+              <button type="button" class="btn-close hidden" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="validate_loading"
+                style="display: flex; justify-content:center; flex-direction:column; align-items:center; gap:3px;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+
+                </div>
+                <p>Sedang melakukan validasi...</p>
+              </div>
+              <div class="hidden" id="box_validated_face">
+                <img id="validated_face" style="width:100%;" />
+              </div>
+            </div>
+            <div class="modal-footer hidden" id="modal_footer">
+              {{-- <button type="button" class="btn btn-secondary hidden" data-bs-dismiss="modal">Close</button> --}}
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;margin-bottom:20px; ">
+        <div
+          style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px; display:flex; align-items:center; gap:10px;">
+          {{-- BACK BUTTON --}}
+          <div style="cursor:pointer;" onclick="window.location.href = '/menu'">
+            <i class="bi bi-arrow-left"></i>
+          </div>
+
+          <p class="txt txt-16 txt-lh-18 txt-cl-turqoise bold mb-0" style="font-size:20px; font-weight:bold;">
+            Tambah Wajah
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="box" style="display:flex; flex-direction: column; justify-content:center;">
+            <div class="row">
+              <div class="col-md-6">
+                <video id="video" style="width:100%;" autoplay></video>
+              </div>
+              <div class="col-md-6" style="display: flex; justify-center:center; align-items:center;">
+                <img src="/empty.jpeg" id="empty" style="max-width:100%; height: 380px;" />
+                <img id="captured" style="width:100%;" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12"
+                style="display:flex; flex-direction: column; justify-content:center; align-items:center;">
+                <div class="action" style="margin-top:30px; display:flex; gap:10px;">
+                  <button onclick="capture()"
+                    style="background-color:#F15921; border:transparent; color:white; padding:10px 15px; width: 150px; border-radius:10px;">Capture
+                  </button>
+                  <button disabled class="save" onclick="submit({{user_id}})"
+                    style="background-color:#07838b; border:transparent; color:white; padding:10px 15px; width: 150px; border-radius:10px;">Submit</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let mediaStream = null;
+    let capturedFrame = null;
+    let videoElement = document.getElementById('video');
+    let validatedFace = document.getElementById('validated_face');
+    let boxValidatedFace = document.getElementById('box_validated_face');
+    let validateLoading = document.getElementById('validate_loading');
+    let modalFooter = document.getElementById('modal_footer');
+    const save = document.querySelector('.save');
+    const socket = io("http://127.0.0.1:4000", {
+      transports: ["websocket"], // Use WebSocket transport
+      withCredentials: true,
+    });
+
+    socket.on('addFaceResult', (data) => {
+      console.log(data);
+      if(data.success){
+        validatedFace.src = "/" + data.result;
+        validateLoading.classList.add('hidden');
+        boxValidatedFace.classList.remove('hidden');
+        modalFooter.classList.remove('hidden');
+      }
+    })
+    async function stream(){
+      const captured = document.getElementById('captured');
+      const liststream = await navigator.mediaDevices.enumerateDevices();
+      const videoInput = liststream.filter((device) => {
+        return device.kind == "videoinput" && device.deviceId == "default";
+      })
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: {deviceId: {exact: videoInput.deviceId}} })
+      videoElement.srcObject = mediaStream;
+// videoElement.srcObject = mediaStream;
+    }
+
+    async function capture(){
+      const captured = document.getElementById('captured');
+      const empty = document.getElementById('empty');
+      const track = mediaStream.getVideoTracks()[0];
+      const imageCapture = new ImageCapture(track);
+      capturedFrame = await imageCapture.takePhoto();
+      captured.src = URL.createObjectURL(capturedFrame);
+      captured.classList.remove('hidden');
+      empty.classList.add('hidden');
+      // var galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
+      //   keyboard: false,
+      //   backdrop: 'static'
+      // });
+      // galleryModal.show();
+      save.removeAttribute('disabled');
+    }
+
+    async function validate(){
+      const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
+      const capturedFile = new File([blob], 'captured_image.png', { type: 'image/png' });
+      socket.emit('validateFace', {capturedFile});
+    }
+
+    async function submit(user_id){
+      // Convert the captured frame Blob to a File object
+      const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
+      const capturedFile = new File([blob], 'captured_image.png', { type: 'image/png' });
+      socket.emit('addFace', {capturedFile, user_id});
+      var galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
+        keyboard: false,
+        backdrop: 'static'
+      });
+      galleryModal.show();
+    }
+    stream();
+  </script>
+</body>
+
+</html>

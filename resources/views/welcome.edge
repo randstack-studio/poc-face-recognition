@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  {{--  <title>Hello Adonis</title>  --}}
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+  {{ style('style') }}
+</head>
+
+<body>
+  <section>
+    {{--  <div class="logo"></div>
+    <div class="title"></div>
+    <div class="subtitle">
+      <p>AdonisJs XX simplicity will make you feel confident about your code</p>
+      <p>
+        Don't know where to start? Read the <a href="https://adonisjs.com/docs">documentation</a>.
+      </p>
+    </div>  --}}
+
+    <video id="video" autoplay></video>
+    <img class="hidden" id="captured" width="" />
+    <div style="display: flex; gap:10px;">
+      <img id="ktp_marked" width="450" />
+      <img id="capture_marked" width="450" />
+    </div>
+
+  </section>
+  <script>
+    // const socket = io("http://127.0.0.1:3000", {
+    //   transports: ["websocket"], // Use WebSocket transport
+    //   withCredentials: true,
+    // });
+    // const resultCanvas = document.getElementById('resultCanvas');
+
+    // socket.on("connect", async () => {
+    //   console.log("Connected to the server");
+    //   const videoElement = document.getElementById('video');
+    //   const deviceId = "c770a8da220211034f02398828277f7136def79ead9b5aa5177761020de48d7f";
+    //   const captured = document.getElementById('captured');
+    //   // const mediaStream = navigator.mediaDevices.enumerateDevices().then((device) => console.log(device));
+    //   // console.log(mediaStream);
+    //   const mediaStream = await navigator.mediaDevices.getUserMedia({ video: {deviceId: {exact: deviceId}} });
+    //   videoElement.srcObject = mediaStream;
+    //   const track = mediaStream.getVideoTracks()[0];
+    //   const imageCapture = new ImageCapture(track);
+    //   const capturedFrame = await imageCapture.takePhoto();
+    //   // Convert the captured frame Blob to a File object
+
+    //   const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
+    //   const capturedFile = new File([blob], 'captured_image.png', { type: 'image/png' });
+
+    //   captured.src = URL.createObjectURL(capturedFrame);
+    //   // const blob = await capturedFrame.blob();
+    //   socket.emit('capturedImage', capturedFile);
+
+
+    // });
+
+    // socket.on("result", (result) => {
+    //   const ktp_marked = document.getElementById('ktp_marked');
+    //   const capture_marked = document.getElementById('capture_marked');
+    //   ktp_marked.src = 'marked_ktp.png';
+    //   capture_marked.src = 'marked_image_captured.png';
+    //   if(result){
+    //     alert("FACE MATCHED!")
+    //   } else {
+    //     alert("FACE NOT MATCHED!!")
+    //   }
+    //   // console.log("this is you ? " + result);
+    // })
+    // socket.on('processedFrame', (frameData) => {
+    //   // Convert the base64 frame data to a blob
+    //   const frameBlob = base64ToBlob(frameData);
+
+    //   // Create a Blob URL from the frame data
+    //   const blobUrl = URL.createObjectURL(frameBlob);
+
+    //   // Set the Blob URL as the source for the <video> element
+    //   processedVideo.src = blobUrl;
+    // });
+
+    // function base64ToBlob(base64) {
+    //   const binaryString = window.atob(base64);
+    //   const length = binaryString.length;
+    //   const bytes = new Uint8Array(length);
+
+    //   for (let i = 0; i < length; i++) {
+    //     bytes[i] = binaryString.charCodeAt(i);
+    //   }
+
+    //   return new Blob([bytes], { type: 'image/jpeg' }); // Adjust the type based on your frame format
+    // }
+
+    // socket.on("message", (pesan) => {
+    //   console.log("PESAN DARI SERVER " , pesan)
+    // })
+
+    // socket.on("disconnect", () => {
+    //   console.log("Disconnected from the server");
+    // });
+  </script>
+</body>
+
+</html>
