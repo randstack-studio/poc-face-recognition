@@ -25,7 +25,6 @@ RUN npm i --save opencv4nodejs
 RUN npm i --build-from-source canvas
 RUN npm i --save @adonisjs/websocket
 RUN npm i --save @adonisjs/websocket
-RUN npm i --save @tensorflow/tfjs-node
 RUN npm i --save @tensorflow/tfjs@1.7.4
 RUN npm i --save @tensorflow/tfjs-node@1.7.4
 RUN npm i --save @tensorflow/tfjs-node-gpu@1.7.4
