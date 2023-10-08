@@ -1,8 +1,11 @@
 'use strict'
-
+require('@tensorflow/tfjs');
+require('@tensorflow/tfjs-core');
+require('@tensorflow/tfjs-node');
 const cv = require("opencv4nodejs");
 const Helpers = use('Helpers');
 const fs = require('fs');
+const sharp = require('sharp');
 const path = require('path')
 const faceapi = require('face-api.js');
 const canvas = require('canvas');
@@ -235,11 +238,22 @@ class FaceRecognitionController {
       try {
         const filename = `kyc_${Date.now()}.png`;
         const photoPath = Helpers.publicPath(filename)
-        fs.writeFile(photoPath, capturedFile, (err) => {
+        const sharpedFilename = `sharped_kyc_${Date.now()}.jpeg`;
+        const sharpedPhotoPath = Helpers.publicPath(sharpedFilename)
+        fs.writeFile(photoPath, capturedFile, async (err) => {
           if (err) {
             console.error('Error saving captured image:', err);
           } else {
-            console.log('Captured image saved:', photoPath);
+            await sharp(photoPath)
+              .normalise({ lower: 3, upper: 100 })
+              .modulate({
+                brightness: 1.1
+              })
+              .toFormat("jpeg")
+              .toFile(Helpers.publicPath(sharpedFilename), (err, info) => {
+                console.log("INFO " + info)
+                console.log("ERROR " + err)
+              });
           }
         });
         const modelsPath = Helpers.publicPath(`models`)
@@ -248,24 +262,26 @@ class FaceRecognitionController {
         await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
         await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
         await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath);
+        // await faceapi.nets.faceExpressionNet.loadFromUri(modelsPath);
 
-        const image1 = await canvas.loadImage(photoPath);
-        console.log("image 1", image1)
+        const image1 = await canvas.loadImage(sharpedPhotoPath);
         const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
-        console.log("face 1", face1)
-        // console.log(face1.descriptor.toString());
+        console.log(face1.descriptor.toString());
         // DRAW FACE
-        const imageRaw = await cv.imreadAsync(photoPath)
+        const imageRaw = await cv.imreadAsync(sharpedPhotoPath)
         const faces = classifier.detectMultiScale(imageRaw);
         faces.objects.forEach((faceRect) => {
           const { x, y, width, height } = faceRect;
           imageRaw.drawRectangle(new cv.Rect(x, y, width, height), new cv.Vec(0, 255, 0), 2);
         });
 
-        const markedImagePath = Helpers.publicPath(`marked_${path.basename(photoPath)}`);
+        const markedImagePath = Helpers.publicPath(`marked_${path.basename(sharpedPhotoPath)}`);
+
         await cv.imwriteAsync(markedImagePath, imageRaw);
-        result = { success: 1, message: "Success verify", result: { image: `marked_${path.basename(photoPath)}`, descriptor: face1.descriptor.toString() } }
+
+        result = { success: 1, message: "Success verify", result: { image: `marked_${path.basename(sharpedPhotoPath)}`, descriptor: face1.descriptor.toString() } }
       } catch (error) {
+        console.log(error)
         result = { success: 0, message: error.message, result: null }
       }
 
@@ -288,6 +304,7 @@ class FaceRecognitionController {
             console.log('Captured image saved:', photoPath);
           }
         });
+
         const modelsPath = Helpers.publicPath(`models`)
         const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
         faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
@@ -297,13 +314,11 @@ class FaceRecognitionController {
 
         const image1 = await canvas.loadImage(photoPath);
         const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
-        console.log(face1.descriptor.toString());
-
         users.rows.forEach(async (user, index) => {
           if (user.marked_kyc) {
             threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((user.marked_kyc.split(",")).map(parseFloat)));
-            console.log(threshold);
-            if (threshold < 0.5) {
+            console.log("THRESHOLD ", threshold)
+            if (threshold < 0.53) {
               if (!result) {
                 result = true;
                 userData = user;
