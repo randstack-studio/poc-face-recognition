@@ -29,9 +29,14 @@ Route.get('/face-matching', 'FaceRecognitionController.faceMatching');
 Route.get('/send-message', 'FaceRecognitionController.sendMessage');
 
 // AUTH
-Route.get('/create', 'AuthController.showCreateForm');
-Route.post('/create', 'AuthController.create');
+Route.get('/menu/create-user', 'AuthController.showCreateForm').middleware(['auth']);
+Route.post('/create-user', 'AuthController.create').middleware(['auth']);
+
+Route.get('/auth/logout', 'AuthController.logout').middleware(['auth']);
+
 Route.get('/login', 'AuthController.showLoginForm');
+Route.get('/create-admin', 'AuthController.showCreateAdminForm');
+Route.post('/create-admin', 'AuthController.createAdmin');
 Route.post('/login', 'AuthController.login');
 Route.get('/biometric-login', 'AuthController.showBiometricLoginForm');
 Route.post('/biometric-login', 'AuthController.biometricLogin');
@@ -42,4 +47,7 @@ Route.get('/menu', 'MenuController.index').middleware(['auth']);
 Route.get('/menu/add-face', 'MenuController.addFace').middleware(['auth']);
 Route.get('/menu/attendance', 'MenuController.attendance').middleware(['auth']);
 Route.get('/menu/attendance-report', 'MenuController.history').middleware(['auth']);
+
+// USERS
+Route.get('/menu/users', 'MenuController.users').middleware(['auth']);
 

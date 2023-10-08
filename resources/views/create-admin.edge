@@ -7,8 +7,6 @@
   <title>Login</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
-    integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
   </script>
@@ -42,19 +40,7 @@
     }
 
     .hidden {
-      display: none !important;
-    }
-
-    .login-container {
-      max-width: 1185px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      margin: auto;
-    }
-
-    .container-form {
-      margin-top: 20px;
+      display: none!important;
     }
   </style>
   {{--
@@ -62,7 +48,6 @@
 </head>
 
 <body>
-
   <div class="login-container">
     <div class="modal fade" id="submittedModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -78,7 +63,10 @@
                 <span class="visually-hidden">Loading...</span>
 
               </div>
-              <p>Sedang melakukan pengecekan...</p>
+              <p>Sedang melakukan validasi...</p>
+            </div>
+            <div class="hidden" id="box_validated_face">
+              <img id="validated_face" style="width:100%;" />
             </div>
           </div>
           <div class="modal-footer hidden" id="modal_footer">
@@ -88,80 +76,49 @@
         </div>
       </div>
     </div>
-
-    <div style="margin-top:20px;margin-bottom:20px; ">
-      <div style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px; display:flex; align-items:center; gap:10px;">
-        {{-- BACK BUTTON --}}
-        <div style="cursor:pointer;" onclick="window.location.href = '/menu'">
-          <i class="bi bi-arrow-left"></i>
-        </div>
-
-        <p class="txt txt-16 txt-lh-18 txt-cl-turqoise bold mb-0" style="font-size:20px; font-weight:bold;">
-          Buat pengguna baru
-        </p>
-      </div>
-    </div>
     <div class="col-md-12 col-xs-8">
       <div class="row">
-        <div class="col-md-12 col-xs-12 container-form">
-          <div class="row">
-            <div class="col-md-8" style="padding: 0px 50px;">
-              <form method="POST" action="/create-user">
-                {{ csrfField() }}
-                <div class="action-box">
-                  @if(data)
-                  @if(data.success)
-                  <div class="alert alert-success" role="alert">
-                    Berhasil membuat akun!
-                  </div>
-                  @else
-                  <div class="alert alert-danger" role="alert">
-                    Gagal membuat akun!
-                  </div>
-                  @endif
-                  @endif
-                  <div class="form-input auth">
-                    <label>Username</label>
-                    <input name="username" type="text" class="w-100" v-model="form.agent_number" placeholder="XXX" />
-                  </div>
-                  <br />
-                  <div class="form-input auth">
-                    <label>Email</label>
-                    <input name="email" type="email" class="w-100" v-model="form.agent_number" placeholder="XXX" />
-                  </div>
-                  <br />
-                  <div class="form-input no-border" style="margin-bottom: 20px;">
-                    <label>Password</label>
-                    <input name="password" type="password" class="w-100" v-model="form.agent_number"
-                      placeholder="XXX" />
-                  </div>
-                  <div class="form-input no-border" style="margin-bottom: 20px;">
-                    <label>KTP</label>
-                    <input name="kyc" id="kyc_input" type="file" class="w-100" onchange="validateKyc(event)" />
-                  </div>
-                  <div class="form-input no-border" style="margin-bottom: 20px;">
-                    <input name="marked_kyc" id="marked_kyc" type="hidden" class="w-100" />
-                  </div>
-                  <div class="form-input no-border" style="margin-bottom: 20px;">
-                    <input name="origin_kyc" id="origin_kyc" type="hidden" class="w-100" />
-                  </div>
-                  <button class="btn btn-primary w-100" type="submit">
-                    Buat
-                  </button>
+        <div class="col-md-6 col-xs-12 container-form">
+          <div class="auth-section-form">
+            <div style="width: 100%; text-align: center" class="bni_logo">
+              <h2 style="color:#F7931D; "> BNI LIFE | LENS SYSTEM</h2>
+            </div>
+            <div class="title" style="text-align: center">
+              <h3 class="txt-30 txt-lh-45 title-std bold">
+                Buat Admin
+              </h3>
+            </div>
+            <form method="POST" action="/create-admin">
+              {{ csrfField() }}
+              <div class="action-box">
+                <div class="form-input auth">
+                  <label>Username</label>
+                  <input name="username" type="text" class="w-100" v-model="form.agent_number" placeholder="XXX" />
                 </div>
-              </form>
-            </div>
-            <div class="col-md-4">
-              <p><b>KTP</b></p>
-              <div id="box_placeholder">
-                <img src="/ktp_placholder.png" id="empty" style="max-width:100%;" />
+                <br />
+                <div class="form-input auth">
+                  <label>Email</label>
+                  <input name="email" type="email" class="w-100" v-model="form.agent_number" placeholder="XXX" />
+                </div>
+                <br />
+                <div class="form-input no-border" style="margin-bottom: 20px;">
+                  <label>Password</label>
+                  <input name="password" type="password" class="w-100" v-model="form.agent_number" placeholder="XXX" />
+                </div>
+                <button class="btn btn-primary w-100" type="submit">
+                  Buat
+                </button>
               </div>
-              <div id="box_validate_face" class="hidden">
-                <img id="validated_face" style="width:100%;" />
-              </div>
-            </div>
+            </form>
+
           </div>
         </div>
+        <div class="col-md-6 auth-section-logo d-none d-md-block">
+          <div class="image-container">
+            <img src="/login_cover_center.png" alt="xxx" />
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -169,10 +126,8 @@
     let mediaStream = null;
     let capturedFrame = null;
     let videoElement = document.getElementById('video');
-    let kycInput = document.getElementById('kyc_input');
     let validatedFace = document.getElementById('validated_face');
-    let boxValidatedFace = document.getElementById('box_validate_face');
-    let boxPlaceholder = document.getElementById('box_placeholder');
+    let boxValidatedFace = document.getElementById('box_validated_face');
     let validateLoading = document.getElementById('validate_loading');
     let modalFooter = document.getElementById('modal_footer');
     const galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
@@ -191,18 +146,11 @@
       console.log(data);
       if(data.success){
         validatedFace.src = "/" + data.result.image;
-        // validatedFace.classList.remove('hidden');
         validateLoading.classList.add('hidden');
-        boxPlaceholder.classList.add('hidden');
         boxValidatedFace.classList.remove('hidden');
-        // modalFooter.classList.remove('hidden');
+        modalFooter.classList.remove('hidden');
         document.getElementById('marked_kyc').value = data.result.descriptor;
         document.getElementById('origin_kyc').value = data.result.image;
-        galleryModal.hide();
-      } else {
-        alert('KTP tidak valid');
-        kycInput.value = '';
-        galleryModal.hide();
       }
     })
     function validateKyc(file){

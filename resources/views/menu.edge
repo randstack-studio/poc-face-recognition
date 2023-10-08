@@ -18,6 +18,10 @@
 
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     .menu-container .menu {
       max-width: 1185px;
       width: 100%;
@@ -64,7 +68,17 @@
           </p>
         </div>
       </div>
+      <div class="row " style="margin-bottom: 20px;">
+        <div class="col-md-6">
+          <p class="box-title">Selamat Datang {{auth.role == 'admin' ? 'Admin' : ''}} {{auth.username}} ({{auth.email}})
+          </p>
+        </div>
+        <div class="col-md-6" style="text-align: end;">
+          <p class="box-title"><a href="#" onclick="window.location.href = '/auth/logout'">Logout</a></p>
+        </div>
+      </div>
       <div class="row">
+        @if(auth.role == 'user')
         <div class="col-md-3">
           <div class="box" onclick="window.location.href = '/menu/add-face'">
             <i class="bi bi-journal-plus"></i>
@@ -72,20 +86,39 @@
             <p class="box-description">Tambah identitas pengenalan wajah</p>
           </div>
         </div>
-        <div class="col-md-3">
+        @endif
+
+        <div class="col-md-3 hidden">
           <div class="box" onclick="window.location.href = '/menu/attendance'">
             <i class="bi bi-easel2"></i>
             <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Absensi</p>
             <p class="box-description">Absensi Kehadiran</p>
           </div>
         </div>
+
+        @if(auth.role == 'admin')
+        <div class="col-md-3">
+          <div class="box" onclick="window.location.href = '/menu/create-user'">
+           <i class="bi bi-person-add"></i>
+            <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Tambah Pengguna</p>
+            <p class="box-description">Tambah Akun Pengguna</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="box" onclick="window.location.href = '/menu/users'">
+            <i class="bi bi-person-bounding-box"></i>
+            <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Data Pengguna</p>
+            <p class="box-description">Daftar Data Pengguna</p>
+          </div>
+        </div>
         <div class="col-md-3">
           <div class="box" onclick="window.location.href = '/menu/attendance-report'">
             <i class="bi bi-journal-bookmark"></i>
-            <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Laporan Absensi</p>
-            <p class="box-description">Laporan Absensi Pengguna</p>
+            <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Log Aktivitas</p>
+            <p class="box-description">Log Aktivitas Pengguna</p>
           </div>
         </div>
+        @endif
       </div>
     </div>
   </div>

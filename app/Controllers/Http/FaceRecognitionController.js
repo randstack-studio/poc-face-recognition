@@ -171,6 +171,7 @@ class FaceRecognitionController {
       attendanceHistory.threshold = threshold;
       attendanceHistory.message = message;
       attendanceHistory.status = success;
+      attendanceHistory.method = "biometric-login";
       await attendanceHistory.save();
 
       if (success) {
@@ -272,46 +273,61 @@ class FaceRecognitionController {
     });
 
     socket.on('biometricLogin', async ({ capturedFile }) => {
-      // console.log(capturedFile);
+      let message = "";
+      let result = false;
+      let userData = null;
+      let threshold = 1;
       const users = await User.all();
       const filename = `biometric_login_${Date.now()}.png`;
       const photoPath = Helpers.publicPath(filename)
-      fs.writeFile(photoPath, capturedFile, (err) => {
-        if (err) {
-          console.error('Error saving captured image:', err);
-        } else {
-          console.log('Captured image saved:', photoPath);
-        }
-      });
-      const modelsPath = Helpers.publicPath(`models`)
-      const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
-      faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
-      await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
-      await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
-      await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath);
+      try {
+        fs.writeFile(photoPath, capturedFile, (err) => {
+          if (err) {
+            console.error('Error saving captured image:', err);
+          } else {
+            console.log('Captured image saved:', photoPath);
+          }
+        });
+        const modelsPath = Helpers.publicPath(`models`)
+        const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
+        faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+        await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
+        await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
+        await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath);
 
-      const image1 = await canvas.loadImage(photoPath);
-      const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
-      console.log(face1.descriptor.toString());
-      let result = false;
-      let userData = null;
-      users.rows.forEach(async (user, index) => {
-        if (user.marked_kyc) {
-          const threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((user.marked_kyc.split(",")).map(parseFloat)));
-          console.log(threshold);
-          if (threshold < 0.5) {
-            if (!result) {
-              result = true;
-              userData = user;
+        const image1 = await canvas.loadImage(photoPath);
+        const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
+        console.log(face1.descriptor.toString());
+
+        users.rows.forEach(async (user, index) => {
+          if (user.marked_kyc) {
+            threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((user.marked_kyc.split(",")).map(parseFloat)));
+            console.log(threshold);
+            if (threshold < 0.5) {
+              if (!result) {
+                result = true;
+                userData = user;
+              }
             }
           }
-        }
-      })
+        })
+        // console.log(userData)
+      } catch (error) {
+        message = "Biometric Invalid"
+      }
+      const attendanceHistory = new AttendanceHistory();
+      attendanceHistory.user_id = userData ? userData.id : null;
+      attendanceHistory.captured = filename;
+      attendanceHistory.threshold = threshold;
+      attendanceHistory.message = result ? "Success login" : "Face not match";
+      attendanceHistory.status = result;
+      attendanceHistory.method = "biometric-login";
+      await attendanceHistory.save();
 
       if (result) {
         socket.emit("biometricLoginResult", { success: 1, message: "Success login", result: userData })
       } else {
-        socket.emit("biometricLoginResult", { success: 0, message: "Face not match" })
+        socket.emit("biometricLoginResult", { success: 0, message: message })
       }
     })
 

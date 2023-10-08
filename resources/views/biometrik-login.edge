@@ -59,7 +59,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Verifikasi KTP</h5>
+            <h5 class="modal-title" id="exampleModalLabel">Biometric Login</h5>
             <button type="button" class="btn-close hidden" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -181,6 +181,12 @@
         // boxValidatedFace.classList.remove('hidden');
         // validatedFace.src = result.validatedFace;
         // modalFooter.classList.remove('hidden');
+      } else {
+        validateLoading.classList.add('hidden');
+        faceMatchBox.classList.remove('hidden');
+        faceMatchResult.innerHTML = response.message;
+        resetButton.classList.remove('hidden');
+        galleryModal.hide();
       }
     });
     async function stream(){
@@ -198,6 +204,16 @@
       }
 
 // videoElement.srcObject = mediaStream;
+    }
+
+    function reset(){
+      boxCapture.classList.add('hidden');
+      boxVideo.classList.remove('hidden');
+      faceMatchBox.classList.add('hidden');
+      resetButton.classList.add('hidden');
+      timer.innerHTML = 5;
+      timerBox.classList.remove('hidden');
+      startTimer();
     }
 
     function startTimer(){
@@ -223,6 +239,7 @@
       boxCapture.classList.remove('hidden');
       boxVideo.classList.add('hidden');
       galleryModal.show();
+      validateLoading.classList.remove('hidden');
       const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
       const capturedFile = new File([blob], 'captured_image.png', { type: 'image/png' });
       // const user_id = {{user_id}};

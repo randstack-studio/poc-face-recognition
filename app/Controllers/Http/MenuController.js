@@ -5,8 +5,8 @@ const AttendanceHistory = use("App/Models/AttendanceHistory");
 const User = use('App/Models/User');
 // const auth = use('Auth');
 class MenuController {
-  async index({ view }) {
-    return view.render('menu');
+  async index({ view, auth }) {
+    return view.render('menu', {auth: auth.user});
   }
 
   async addFace({ view, auth }) {
@@ -17,8 +17,19 @@ class MenuController {
     return view.render('attendance2', { user_id: auth.user.id });
   }
 
+  async users({ view, auth }) {
+    const users = await User.query().where({ role: 'user' }).fetch();
+    const formattedUsers = users.rows.map((history) => {
+      history.created_at = this.formatDate(history.created_at)
+      history.updated_at = this.formatDate(history.updated_at)
+      return history;
+    });
+
+    return view.render('users', { users: formattedUsers });
+  }
+
   async history({ view, auth }) {
-    const histories = await AttendanceHistory.query().where({ user_id: auth.user.id }).fetch();
+    const histories = await AttendanceHistory.all();
     const formattedHistories = histories.rows.map((history) => {
       history.created_at = this.formatDate(history.created_at)
       history.updated_at = this.formatDate(history.updated_at)
