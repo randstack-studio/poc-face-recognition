@@ -29,7 +29,7 @@ class MenuController {
   }
 
   async history({ view, auth }) {
-    const histories = await AttendanceHistory.all();
+    const histories = await AttendanceHistory.query().where({ role: 'user' }).fetch();
     const formattedHistories = histories.rows.map((history) => {
       history.created_at = this.formatDate(history.created_at)
       history.updated_at = this.formatDate(history.updated_at)
