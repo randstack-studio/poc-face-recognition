@@ -17,6 +17,7 @@
 const Route = use('Route')
 
 Route.on('/attendance').render('attendance').middleware(['auth']);
+Route.get('/realtime-facing','FaceRecognitionController.realtimeFacing').middleware(['auth']);
 
 
 
@@ -32,7 +33,8 @@ Route.get('/create', 'AuthController.showCreateForm');
 Route.post('/create', 'AuthController.create');
 Route.get('/login', 'AuthController.showLoginForm');
 Route.post('/login', 'AuthController.login');
-
+Route.get('/biometric-login', 'AuthController.showBiometricLoginForm');
+Route.post('/biometric-login', 'AuthController.biometricLogin');
 // MENU
 Route.get('/menu', 'MenuController.index').middleware(['auth']);
 

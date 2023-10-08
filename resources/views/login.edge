@@ -58,7 +58,7 @@
                 Login User
               </h3>
             </div>
-            <form method="POST" action="/login">
+            <form method="POST" action="/login" style="width: 50%;">
               {{ csrfField() }}
               <div class="action-box">
                 <div class="form-input auth">
@@ -75,9 +75,15 @@
                 </button>
                 <div style="margin-top:10px; text-align:center;">
                   <p>atau</p>
-                  <a href="/create" class="w-100" type="submit">
-                    Register
+                  <a href="/biometric-login" class="w-100" type="submit">
+                    Login Biometric
                   </a>
+                </div>
+                <div style="margin-top:20px; display:flex; width:100%; text-align:center;">
+                  <a href="/create" class="w-100" type="submit">
+                    Register Disini
+                  </a>
+
                 </div>
 
               </div>

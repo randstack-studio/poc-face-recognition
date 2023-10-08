@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
   <style>
     .auth-section-logo {
       background-color: #006480;
@@ -37,6 +38,10 @@
       align-items: center;
       justify-content: center;
     }
+
+    .hidden {
+      display: none!important;
+    }
   </style>
   {{--
   <link rel="stylesheet" href="style.css"> --}}
@@ -44,12 +49,39 @@
 
 <body>
   <div class="login-container">
+    <div class="modal fade" id="submittedModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Verifikasi KTP</h5>
+            <button type="button" class="btn-close hidden" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="validate_loading"
+              style="display: flex; justify-content:center; flex-direction:column; align-items:center; gap:3px;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+
+              </div>
+              <p>Sedang melakukan validasi...</p>
+            </div>
+            <div class="hidden" id="box_validated_face">
+              <img id="validated_face" style="width:100%;" />
+            </div>
+          </div>
+          <div class="modal-footer hidden" id="modal_footer">
+            {{-- <button type="button" class="btn btn-secondary hidden" data-bs-dismiss="modal">Close</button> --}}
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok!</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="col-md-12 col-xs-8">
       <div class="row">
         <div class="col-md-6 col-xs-12 container-form">
           <div class="auth-section-form">
             <div style="width: 100%; text-align: center" class="bni_logo">
-              <h2 style="color:#F7931D; "> BNI LIFE ATTENDANCES SYSTEM</h2>
+              <h2 style="color:#F7931D; "> BNI LIFE | LENS SYSTEM</h2>
             </div>
             <div class="title" style="text-align: center">
               <h3 class="txt-30 txt-lh-45 title-std bold">
@@ -73,6 +105,16 @@
                   <label>Password</label>
                   <input name="password" type="password" class="w-100" v-model="form.agent_number" placeholder="XXX" />
                 </div>
+                <div class="form-input no-border" style="margin-bottom: 20px;">
+                  <label>KTP</label>
+                  <input name="kyc" type="file" class="w-100" onchange="validateKyc(event)" />
+                </div>
+                <div class="form-input no-border" style="margin-bottom: 20px;">
+                  <input name="marked_kyc" id="marked_kyc" type="hidden" class="w-100" />
+                </div>
+                <div class="form-input no-border"  style="margin-bottom: 20px;">
+                  <input name="origin_kyc" id="origin_kyc" type="hidden" class="w-100" />
+                </div>
                 <button class="btn btn-primary w-100" type="submit">
                   Buat
                 </button>
@@ -90,6 +132,51 @@
       </div>
     </div>
   </div>
+  <script>
+    let mediaStream = null;
+    let capturedFrame = null;
+    let videoElement = document.getElementById('video');
+    let validatedFace = document.getElementById('validated_face');
+    let boxValidatedFace = document.getElementById('box_validated_face');
+    let validateLoading = document.getElementById('validate_loading');
+    let modalFooter = document.getElementById('modal_footer');
+    const galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
+      keyboard: false,
+      backdrop: 'static'
+    });
+    // const socket = io("http://127.0.0.1:8086", {
+    //   transports: ["websocket"], // Use WebSocket transport
+    //   withCredentials: true,
+    // });
+    const socket = io("lens.staging.endavolabs.com", {
+      transports: ["polling"], // Use WebSocket transport
+      withCredentials: true,
+    });
+    socket.on('validateKycResult', (data) => {
+      console.log(data);
+      if(data.success){
+        validatedFace.src = "/" + data.result.image;
+        validateLoading.classList.add('hidden');
+        boxValidatedFace.classList.remove('hidden');
+        modalFooter.classList.remove('hidden');
+        document.getElementById('marked_kyc').value = data.result.descriptor;
+        document.getElementById('origin_kyc').value = data.result.image;
+      }
+    })
+    function validateKyc(file){
+      galleryModal.show();
+      socket.emit('validateKyc', file.target.files[0]);
+      // socket.on('addFaceResult', (data) => {
+      //   console.log(data);
+      //   if(data.success){
+      //     validatedFace.src = "/" + data.result;
+      //     validateLoading.classList.add('hidden');
+      //     boxValidatedFace.classList.remove('hidden');
+      //     modalFooter.classList.remove('hidden');
+      //   }
+      // })
+    }
+  </script>
 </body>
 
 </html>

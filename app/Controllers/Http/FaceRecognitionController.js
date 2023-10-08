@@ -8,6 +8,7 @@ const faceapi = require('face-api.js');
 const canvas = require('canvas');
 const io = require('socket.io');
 const UserFace = use("App/Models/UserFace");
+const User = use("App/Models/User");
 const AttendanceHistory = use("App/Models/AttendanceHistory");
 const { Canvas, Image, ImageData } = canvas;
 class FaceRecognitionController {
@@ -228,6 +229,91 @@ class FaceRecognitionController {
       // console.log(await UserFace.all());
       // console.log(auth)
     })
+    socket.on('validateKyc', async (capturedFile) => {
+      let result = null;
+      try {
+        const filename = `kyc_${Date.now()}.png`;
+        const photoPath = Helpers.publicPath(filename)
+        fs.writeFile(photoPath, capturedFile, (err) => {
+          if (err) {
+            console.error('Error saving captured image:', err);
+          } else {
+            console.log('Captured image saved:', photoPath);
+          }
+        });
+        const modelsPath = Helpers.publicPath(`models`)
+        const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
+        faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+        await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
+        await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
+        await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath);
+
+        const image1 = await canvas.loadImage(photoPath);
+        console.log("image 1", image1)
+        const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
+        console.log("face 1", face1)
+        // console.log(face1.descriptor.toString());
+        // DRAW FACE
+        const imageRaw = await cv.imreadAsync(photoPath)
+        const faces = classifier.detectMultiScale(imageRaw);
+        faces.objects.forEach((faceRect) => {
+          const { x, y, width, height } = faceRect;
+          imageRaw.drawRectangle(new cv.Rect(x, y, width, height), new cv.Vec(0, 255, 0), 2);
+        });
+
+        const markedImagePath = Helpers.publicPath(`marked_${path.basename(photoPath)}`);
+        await cv.imwriteAsync(markedImagePath, imageRaw);
+        result = { success: 1, message: "Success verify", result: { image: `marked_${path.basename(photoPath)}`, descriptor: face1.descriptor.toString() } }
+      } catch (error) {
+        result = { success: 0, message: error.message, result: null }
+      }
+
+      socket.emit("validateKycResult", result)
+    });
+
+    socket.on('biometricLogin', async ({ capturedFile }) => {
+      // console.log(capturedFile);
+      const users = await User.all();
+      const filename = `biometric_login_${Date.now()}.png`;
+      const photoPath = Helpers.publicPath(filename)
+      fs.writeFile(photoPath, capturedFile, (err) => {
+        if (err) {
+          console.error('Error saving captured image:', err);
+        } else {
+          console.log('Captured image saved:', photoPath);
+        }
+      });
+      const modelsPath = Helpers.publicPath(`models`)
+      const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
+      faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+      await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
+      await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
+      await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath);
+
+      const image1 = await canvas.loadImage(photoPath);
+      const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
+      console.log(face1.descriptor.toString());
+      let result = false;
+      let userData = null;
+      users.rows.forEach(async (user, index) => {
+        if (user.marked_kyc) {
+          const threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((user.marked_kyc.split(",")).map(parseFloat)));
+          console.log(threshold);
+          if (threshold < 0.5) {
+            if (!result) {
+              result = true;
+              userData = user;
+            }
+          }
+        }
+      })
+
+      if (result) {
+        socket.emit("biometricLoginResult", { success: 1, message: "Success login", result: userData })
+      } else {
+        socket.emit("biometricLoginResult", { success: 0, message: "Face not match" })
+      }
+    })
 
     socket.on('disconnect', function () {
       console.log('user disconnected');
@@ -251,6 +337,18 @@ class FaceRecognitionController {
 
   }
 
+  async realtimeFacing({ view, auth }) {
+    // for (let i = 0; i < 1000000; i++) {
+    //   try {
+    //     const camera = new cv.VideoCapture(i);
+    //     break;
+    //   } catch (error) {
+    //     console.log(error + 'index :' + i);
+    //   }
+    // }
+
+    return view.render('realtime-facing')
+  }
   // async matchingRealtime() {
 
 

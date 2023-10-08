@@ -152,14 +152,14 @@
     let validateLoading = document.getElementById('validate_loading');
     let modalFooter = document.getElementById('modal_footer');
     const save = document.querySelector('.save');
-    // const socket = io("http://127.0.0.1:8086", {
-    //   transports: ["websocket"], // Use WebSocket transport
-    //   withCredentials: true,
-    // });
-    const socket = io("lens.staging.endavolabs.com", {
-      transports: ["polling"], // Use WebSocket transport
+    const socket = io("http://127.0.0.1:8086", {
+      transports: ["websocket"], // Use WebSocket transport
       withCredentials: true,
     });
+    // const socket = io("lens.staging.endavolabs.com", {
+    //   transports: ["polling"], // Use WebSocket transport
+    //   withCredentials: true,
+    // });
 
     socket.on('addFaceResult', (data) => {
       console.log(data);
