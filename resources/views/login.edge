@@ -37,6 +37,10 @@
       align-items: center;
       justify-content: center;
     }
+
+    .hidden {
+      display: none;
+    }
   </style>
   {{--
   <link rel="stylesheet" href="style.css"> --}}
@@ -73,14 +77,12 @@
                 <button class="btn btn-primary w-100" type="submit">
                   Masuk
                 </button>
-                <div style="margin-top:10px; text-align:center;">
+                <div style="margin-top:10px; text-align:center;" id="access-biometric" class="hidden">
                   <p>atau</p>
-                  <a href="/biometric-login" class="w-100" type="submit">
+                  <a href="/biometric-login" class="w-100" type="submit" id="title-biometric">
                     Login Biometric
                   </a>
                 </div>
-
-
               </div>
             </form>
 
@@ -95,6 +97,20 @@
       </div>
     </div>
   </div>
+
+  <script>
+    const accessBiometric = document.getElementById('access-biometric');
+    const titleBiometric = document.getElementById('title-biometric');
+    function check() {
+      if('email' in localStorage){
+        if(localStorage.getItem('email') != ''){
+          accessBiometric.classList.remove('hidden');
+          titleBiometric.innerHTML = 'Login Biometric (' + localStorage.getItem('email') + ')';
+        }
+      }
+    }
+    check();
+  </script>
 </body>
 
 </html>

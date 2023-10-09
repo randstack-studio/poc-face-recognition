@@ -288,12 +288,12 @@ class FaceRecognitionController {
       socket.emit("validateKycResult", result)
     });
 
-    socket.on('biometricLogin', async ({ capturedFile }) => {
+    socket.on('biometricLogin', async ({ capturedFile, email }) => {
       let message = "";
       let result = false;
       let userData = null;
       let threshold = 1;
-      const users = await User.all();
+      const users = await User.query().where({ email: email }).limit(1).fetch();
       const filename = `biometric_login_${Date.now()}.png`;
       const photoPath = Helpers.publicPath(filename)
       try {
@@ -314,20 +314,30 @@ class FaceRecognitionController {
 
         const image1 = await canvas.loadImage(photoPath);
         const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
-        users.rows.forEach(async (user, index) => {
-          if (user.marked_kyc) {
-            threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((user.marked_kyc.split(",")).map(parseFloat)));
-            console.log("THRESHOLD ", threshold)
-            if (threshold < 0.53) {
-              if (!result) {
-                result = true;
-                userData = user;
-              }
-            }
+        threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+        console.log("THRESHOLD ", threshold)
+        if (threshold <= 0.5) {
+          if (!result) {
+            result = true;
+            userData = users.rows[0];
           }
-        })
+        }
+
+        // users.rows.forEach(async (user, index) => {
+        //   if (user.marked_kyc) {
+        //     threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((user.marked_kyc.split(",")).map(parseFloat)));
+        //     console.log("THRESHOLD ", threshold)
+        //     if (threshold < 0.53) {
+        //       if (!result) {
+        //         result = true;
+        //         userData = user;
+        //       }
+        //     }
+        //   }
+        // })
         // console.log(userData)
       } catch (error) {
+        console.log(error);
         message = "Biometric Invalid"
       }
       const attendanceHistory = new AttendanceHistory();

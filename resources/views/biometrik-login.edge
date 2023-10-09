@@ -143,6 +143,10 @@
     </div>
   </div>
   <script>
+    if('email' in localStorage == false){
+      window.location.href = '/login';
+    }
+
     let captured = document.getElementById('captured');
     let timer = document.getElementById('timer');
     let form = document.getElementById('form');
@@ -234,6 +238,7 @@
       const empty = document.getElementById('empty');
       const track = mediaStream.getVideoTracks()[0];
       const imageCapture = new ImageCapture(track);
+      const currentEmail = localStorage.getItem('email');
       capturedFrame = await imageCapture.takePhoto();
       captured.src = URL.createObjectURL(capturedFrame);
       boxCapture.classList.remove('hidden');
@@ -243,7 +248,7 @@
       const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
       const capturedFile = new File([blob], 'captured_image.png', { type: 'image/png' });
       // const user_id = {{user_id}};
-      socket.emit('biometricLogin', {capturedFile: capturedFile });
+      socket.emit('biometricLogin', {capturedFile: capturedFile, email: currentEmail });
     }
     stream()
   </script>

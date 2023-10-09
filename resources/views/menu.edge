@@ -99,7 +99,7 @@
         @if(auth.role == 'admin')
         <div class="col-md-3">
           <div class="box" onclick="window.location.href = '/menu/create-user'">
-           <i class="bi bi-person-add"></i>
+            <i class="bi bi-person-add"></i>
             <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Tambah Pengguna</p>
             <p class="box-description">Tambah Akun Pengguna</p>
           </div>
@@ -122,6 +122,13 @@
       </div>
     </div>
   </div>
+  <script>
+    if("{{auth.role}}" == "user"){
+        localStorage.setItem('email', "{{auth.email}}");
+    }
+
+  </script>
+
 </body>
 
 </html>
