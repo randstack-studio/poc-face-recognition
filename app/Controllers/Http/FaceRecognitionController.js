@@ -327,35 +327,35 @@ class FaceRecognitionController {
             // await cv.imwriteAsync(Helpers.publicPath(`biometric_eye2_login_${Date.now()}.png`),  await faceRegion.getRegion(eyes.objects[1]));
             // console.log("eyes.objects ", eyes.objects)
             // if (eyes.objects.length === 2) {
-            const [eye1, eye2] = eyes.objects;
-            const eyeRegion1 = await faceRegion.getRegion(eye1);
-            const eyeRegion2 = await faceRegion.getRegion(eye2);
-            const avgIntensity1 = await eyeRegion1.mean().x;
-            const avgIntensity2 = await eyeRegion2.mean().x;
-            const blinkThreshold = 100;
+            // const [eye1, eye2] = eyes.objects;
+            // const eyeRegion1 = await faceRegion.getRegion(eye1);
+            // const eyeRegion2 = await faceRegion.getRegion(eye2);
+            // const avgIntensity1 = await eyeRegion1.mean().x;
+            // const avgIntensity2 = await eyeRegion2.mean().x;
+            // const blinkThreshold = 100;
             // await cv.imwriteAsync(Helpers.publicPath(`biometric_eye1_login_${Date.now()}.png`), await faceRegion.getRegion(eyes.objects[0]));
             // await cv.imwriteAsync(Helpers.publicPath(`biometric_eye2_login_${Date.now()}.png`),  await faceRegion.getRegion(eyes.objects[1]));
-            console.log("avgIntensity1 ", avgIntensity1)
-            console.log("avgIntensity2 ", avgIntensity2)
-            if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
-              threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
-              console.log("THRESHOLD ", threshold)
-              if (threshold <= 0.5) {
-                result = true;
-                message = "Success login"
-                userData = users.rows[0];
-                socket.emit("biometricLoginResult", { success: 1, message: message, result: users.rows[0] })
-              } else {
-                message = "Face not match"
-                result = false;
-                socket.emit("biometricLoginResult", { success: 0, message: message })
-              }
+            // console.log("avgIntensity1 ", avgIntensity1)
+            // console.log("avgIntensity2 ", avgIntensity2)
+            // if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
+            threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+            console.log("THRESHOLD ", threshold)
+            if (threshold <= 0.5) {
+              result = true;
+              message = "Success login"
+              userData = users.rows[0];
+              socket.emit("biometricLoginResult", { success: 1, message: message, result: users.rows[0] })
             } else {
-              message = "Eye not detect"
+              message = "Face not match"
               result = false;
               socket.emit("biometricLoginResult", { success: 0, message: message })
-              return;
             }
+            // } else {
+            //   message = "Eye not detect"
+            //   result = false;
+            //   socket.emit("biometricLoginResult", { success: 0, message: message })
+            //   return;
+            // }
             // } else {
             //   message = "Blink not detect"
             //   result = false;
@@ -458,15 +458,15 @@ class FaceRecognitionController {
           facesRaw.objects.forEach(async (face) => {
             const faceRegion = await imageRaw.getRegion(face);
             const eyes = await eyeClassifier.detectMultiScale(faceRegion);
-            console.log("eyes.objects ", eyes.objects)
+            // console.log("eyes.objects ", eyes.objects)
             // if (eyes.objects.length === 2) {
-            const [eye1, eye2] = eyes.objects;
-            const eyeRegion1 = await faceRegion.getRegion(eye1);
-            const eyeRegion2 = await faceRegion.getRegion(eye2);
-            const avgIntensity1 = await eyeRegion1.mean().x;
-            const avgIntensity2 = await eyeRegion2.mean().x;
-            const blinkThreshold = 90;
-            if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
+            // const [eye1, eye2] = eyes.objects;
+            // const eyeRegion1 = await faceRegion.getRegion(eye1);
+            // const eyeRegion2 = await faceRegion.getRegion(eye2);
+            // const avgIntensity1 = await eyeRegion1.mean().x;
+            // const avgIntensity2 = await eyeRegion2.mean().x;
+            // const blinkThreshold = 90;
+            // if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
               threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
               console.log("THRESHOLD ", threshold)
               if (threshold <= 0.5) {
@@ -475,11 +475,11 @@ class FaceRecognitionController {
                 message = "Face not match"
                 socket.emit("validateFaceResult", { success: 0, message: message })
               }
-            } else {
-              message = "Blink not detect"
-              socket.emit("validateFaceResult", { success: 0, message: message })
-              return;
-            }
+            // } else {
+            //   message = "Eye not detect"
+            //   socket.emit("validateFaceResult", { success: 0, message: message })
+            //   return;
+            // }
             // } else {
             //   message = "Blink not detect"
             //   socket.emit("validateFaceResult", { success: 0, message: message })
