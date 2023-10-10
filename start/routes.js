@@ -50,4 +50,5 @@ Route.get('/menu/attendance-report', 'MenuController.history').middleware(['auth
 
 // USERS
 Route.get('/menu/users', 'MenuController.users').middleware(['auth']);
+Route.get('/menu/transaction', 'MenuController.transaction').middleware(['auth']);
 

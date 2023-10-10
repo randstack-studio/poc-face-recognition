@@ -17,6 +17,10 @@ class MenuController {
     return view.render('attendance2', { user_id: auth.user.id });
   }
 
+  async transaction({ view, auth }) {
+    return view.render('transaction', { user_id: auth.user.id });
+  }
+
   async users({ view, auth }) {
     const users = await User.query().where({ role: 'user' }).fetch();
     const formattedUsers = users.rows.map((history) => {

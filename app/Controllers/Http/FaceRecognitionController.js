@@ -359,6 +359,53 @@ class FaceRecognitionController {
     socket.on('disconnect', function () {
       console.log('user disconnected');
     });
+
+    socket.on('validateFace', async ({ capturedFile, currentEmail }) => {
+      console.log(capturedFile, currentEmail)
+      let message = "";
+      let result = false;
+      let userData = null;
+      let threshold = 1;
+      const users = await User.query().where({ email: currentEmail }).limit(1).fetch();
+      const filename = `validate_face_${Date.now()}.png`;
+      const photoPath = Helpers.publicPath(filename)
+      try {
+        fs.writeFile(photoPath, capturedFile, (err) => {
+          if (err) {
+            console.error('Error saving captured image:', err);
+          } else {
+            console.log('Captured image saved:', photoPath);
+          }
+        });
+
+        const modelsPath = Helpers.publicPath(`models`)
+        const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
+        faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+        await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
+        await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
+        await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath);
+
+        const image1 = await canvas.loadImage(photoPath);
+        const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
+        threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+        console.log("THRESHOLD ", threshold)
+        if (threshold <= 0.5) {
+          if (!result) {
+            result = true;
+            userData = users.rows[0];
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        message = "Biometric Invalid"
+      }
+      if (result) {
+        socket.emit("validateFaceResult", { success: 1, message: "Success", result: userData })
+      } else {
+        socket.emit("validateFaceResult", { success: 0, message: message })
+      }
+    })
+
     // socket.emit("message", "Wokwowkok");
     // const photoPath1 = Helpers.publicPath(`photo1.png`)
     // const Vcap = new cv.VideoCapture(0, cv.CAP_GSTREAMER);
