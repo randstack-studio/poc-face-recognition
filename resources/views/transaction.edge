@@ -181,10 +181,11 @@
         transactionCode.value = '';
         alertSuccess.classList.remove('hidden');
         alertFailed.classList.add('hidden');
+        alertSuccess.innerHTML = data.message;
       } else {
-
         alertSuccess.classList.add('hidden');
         alertFailed.classList.remove('hidden');
+        alertFailed.innerHTML = data.message;
       }
     })
     async function stream(){

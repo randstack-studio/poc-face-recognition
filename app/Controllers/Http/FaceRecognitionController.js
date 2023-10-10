@@ -307,6 +307,7 @@ class FaceRecognitionController {
 
         const modelsPath = Helpers.publicPath(`models`)
         const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
+        const eyeClassifier = new cv.CascadeClassifier(cv.HAAR_EYE);
         faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
         await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
         await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
@@ -314,14 +315,60 @@ class FaceRecognitionController {
 
         const image1 = await canvas.loadImage(photoPath);
         const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
-        threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
-        console.log("THRESHOLD ", threshold)
-        if (threshold <= 0.5) {
-          if (!result) {
-            result = true;
-            userData = users.rows[0];
-          }
+
+        const imageRaw = await cv.imreadAsync(photoPath);
+        const facesRaw = await classifier.detectMultiScale(imageRaw);
+        if (facesRaw.objects.length === 1) {
+          facesRaw.objects.forEach(async (face) => {
+            const faceRegion = await imageRaw.getRegion(face);
+            const eyes = await eyeClassifier.detectMultiScale(faceRegion);
+            console.log("eyes.objects ", eyes.objects)
+            if (eyes.objects.length === 2) {
+              const [eye1, eye2] = eyes.objects;
+              const eyeRegion1 = await faceRegion.getRegion(eye1);
+              const eyeRegion2 = await faceRegion.getRegion(eye2);
+              const avgIntensity1 = await eyeRegion1.mean().x;
+              const avgIntensity2 = await eyeRegion2.mean().x;
+              const blinkThreshold = 50;
+              if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
+                threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+                console.log("THRESHOLD ", threshold)
+                if (threshold <= 0.5) {
+                  result = true;
+                  message = "Success login"
+                  userData = users.rows[0];
+                  socket.emit("biometricLoginResult", { success: 1, message: message, result: users.rows[0] })
+                } else {
+                  message = "Face not match"
+                  result = false;
+                  socket.emit("biometricLoginResult", { success: 0, message: message })
+                }
+              } else {
+                message = "Blink not detect"
+                result = false;
+                socket.emit("biometricLoginResult", { success: 0, message: message })
+                return;
+              }
+            } else {
+              message = "Blink not detect"
+              result = false;
+              socket.emit("biometricLoginResult", { success: 0, message: message })
+            }
+          });
+        } else {
+          message = "Face not focused";
+          result = false;
+          socket.emit("biometricLoginResult", { success: 0, message: message })
+          return;
         }
+
+        // threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+        // if (threshold <= 0.5) {
+        //   if (!result) {
+        //     result = true;
+
+        //   }
+        // }
 
         // users.rows.forEach(async (user, index) => {
         //   if (user.marked_kyc) {
@@ -337,23 +384,28 @@ class FaceRecognitionController {
         // })
         // console.log(userData)
       } catch (error) {
-        console.log(error);
-        message = "Biometric Invalid"
+        result = false;
+        message = "Face not match"
+        socket.emit("validateFaceResult", { success: 0, message: "Face not match" })
       }
-      const attendanceHistory = new AttendanceHistory();
-      attendanceHistory.user_id = userData ? userData.id : null;
-      attendanceHistory.captured = filename;
-      attendanceHistory.threshold = threshold;
-      attendanceHistory.message = result ? "Success login" : "Face not match";
-      attendanceHistory.status = result;
-      attendanceHistory.method = "biometric-login";
-      await attendanceHistory.save();
 
-      if (result) {
-        socket.emit("biometricLoginResult", { success: 1, message: "Success login", result: userData })
-      } else {
-        socket.emit("biometricLoginResult", { success: 0, message: message })
-      }
+      setTimeout(async () => {
+        const attendanceHistory = new AttendanceHistory();
+        attendanceHistory.user_id = userData ? userData.id : null;
+        attendanceHistory.captured = filename;
+        attendanceHistory.threshold = threshold;
+        attendanceHistory.message = message;
+        attendanceHistory.status = result;
+        attendanceHistory.method = "biometric-login";
+        await attendanceHistory.save();
+      }, 3000)
+
+
+      // if (result) {
+      //   socket.emit("biometricLoginResult", { success: 1, message: "Success login", result: userData })
+      // } else {
+      //   socket.emit("biometricLoginResult", { success: 0, message: message })
+      // }
     })
 
     socket.on('disconnect', function () {
@@ -380,6 +432,9 @@ class FaceRecognitionController {
 
         const modelsPath = Helpers.publicPath(`models`)
         const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
+        const eyeClassifier = new cv.CascadeClassifier(cv.HAAR_EYE);
+        console.log("classifier ", classifier);
+        console.log("eyeClassifier ", eyeClassifier);
         faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
         await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath);
         await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath);
@@ -387,22 +442,54 @@ class FaceRecognitionController {
 
         const image1 = await canvas.loadImage(photoPath);
         const face1 = await faceapi.detectSingleFace(image1).withFaceLandmarks().withFaceDescriptor();
-        threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
-        console.log("THRESHOLD ", threshold)
-        if (threshold <= 0.5) {
-          if (!result) {
-            result = true;
-            userData = users.rows[0];
-          }
+
+        const imageRaw = await cv.imreadAsync(photoPath);
+        let blinkStatus = false;
+        // const grayImg = imageRaw.bgrToGray();
+        const facesRaw = await classifier.detectMultiScale(imageRaw);
+        if (facesRaw.objects.length === 1) {
+          facesRaw.objects.forEach(async (face) => {
+            const faceRegion = await imageRaw.getRegion(face);
+            const eyes = await eyeClassifier.detectMultiScale(faceRegion);
+            console.log("eyes.objects ", eyes.objects)
+            if (eyes.objects.length === 2) {
+              const [eye1, eye2] = eyes.objects;
+              const eyeRegion1 = await faceRegion.getRegion(eye1);
+              const eyeRegion2 = await faceRegion.getRegion(eye2);
+              const avgIntensity1 = await eyeRegion1.mean().x;
+              const avgIntensity2 = await eyeRegion2.mean().x;
+              const blinkThreshold = 50;
+              if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
+                threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+                console.log("THRESHOLD ", threshold)
+                if (threshold <= 0.5) {
+                  socket.emit("validateFaceResult", { success: 1, message: "Berhasil Membuat Transaksi" })
+                } else {
+                  message = "Face not match"
+                  socket.emit("validateFaceResult", { success: 0, message: message })
+                }
+              } else {
+                message = "Blink not detect"
+                socket.emit("validateFaceResult", { success: 0, message: message })
+                return;
+              }
+            } else {
+              message = "Blink not detect"
+              socket.emit("validateFaceResult", { success: 0, message: message })
+            }
+          });
+        } else {
+          message = "Face not focused";
+          socket.emit("validateFaceResult", { success: 0, message: message })
+          return;
         }
+        // const faces = classifier.detectMultiScale(grayImg);
+        // await cv.imwriteAsync(Helpers.publicPath(`gray_${Date.now()}.png`), grayImg);
+
+        // console.log(face1.)
       } catch (error) {
         console.log(error);
-        message = "Biometric Invalid"
-      }
-      if (result) {
-        socket.emit("validateFaceResult", { success: 1, message: "Success", result: userData })
-      } else {
-        socket.emit("validateFaceResult", { success: 0, message: message })
+        socket.emit("validateFaceResult", { success: 0, message: "Face not match" })
       }
     })
 
