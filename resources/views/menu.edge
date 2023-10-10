@@ -78,6 +78,15 @@
         </div>
       </div>
       <div class="row">
+        @if(auth.role == 'user' && update == true)
+          <div class="col-md-12">
+            <div class="alert alert-danger" role="alert">
+              Mohon update data ke menu <a href="/menu/add-face">Tambah Wajah</a>
+            </div>
+          </div>
+        @endif
+
+
         @if(auth.role == 'user')
         <div class="col-md-3">
           <div class="box" onclick="window.location.href = '/menu/add-face'">

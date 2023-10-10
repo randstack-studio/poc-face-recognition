@@ -151,6 +151,10 @@
     let boxValidatedFace = document.getElementById('box_validated_face');
     let validateLoading = document.getElementById('validate_loading');
     let modalFooter = document.getElementById('modal_footer');
+    const galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
+        keyboard: false,
+        backdrop: 'static'
+      });
     const save = document.querySelector('.save');
     // const socket = io("http://127.0.0.1:8086", {
     //   transports: ["websocket"], // Use WebSocket transport
@@ -168,6 +172,10 @@
         validateLoading.classList.add('hidden');
         boxValidatedFace.classList.remove('hidden');
         modalFooter.classList.remove('hidden');
+      } else {
+        alert(data.message);
+        boxValidatedFace.classList.remove('hidden');
+        galleryModal.hide();
       }
     })
     async function stream(){
@@ -209,10 +217,7 @@
       const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
       const capturedFile = new File([blob], 'captured_image.png', { type: 'image/png' });
       socket.emit('addFace', {capturedFile, user_id});
-      var galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
-        keyboard: false,
-        backdrop: 'static'
-      });
+
       galleryModal.show();
     }
     stream();

@@ -3,10 +3,13 @@
 const AttendanceHistory = use("App/Models/AttendanceHistory");
 
 const User = use('App/Models/User');
+const UserFace = use('App/Models/UserFace');
 // const auth = use('Auth');
 class MenuController {
   async index({ view, auth }) {
-    return view.render('menu', {auth: auth.user});
+    const userFace = await UserFace.query().where({ user_id: auth.user.id }).first();
+    console.log(userFace)
+    return view.render('menu', {auth: auth.user, update: userFace ? false : true});
   }
 
   async addFace({ view, auth }) {
