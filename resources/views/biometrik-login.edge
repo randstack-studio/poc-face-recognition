@@ -42,6 +42,117 @@
     .hidden {
       display: none !important;
     }
+
+    #overlay {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      -o-transform: scaleX(-1);
+      -webkit-transform: scaleX(-1);
+      transform: scaleX(-1);
+      -ms-filter: fliph;
+      /*IE*/
+      filter: fliph;
+      /*IE*/
+
+
+    }
+
+    #videoel {
+      -o-transform: scaleX(-1);
+      -webkit-transform: scaleX(-1);
+      transform: scaleX(-1);
+      -ms-filter: fliph;
+      /*IE*/
+      filter: fliph;
+      /*IE*/
+
+
+    }
+
+    #container {
+      position: relative;
+      width: 370px;
+      /*margin : 0px auto;*/
+    }
+
+    #content {
+      margin-top: 50px;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 600px;
+    }
+
+    h2 {
+      font-weight: 400;
+    }
+
+    .btn {
+      font-family: 'Lato';
+      font-size: 16px;
+    }
+
+    #controls {
+      text-align: center;
+    }
+
+    #emotion_container {
+      width: 600px;
+    }
+
+    #emotion_icons {
+      height: 50px;
+      padding-left: 40px;
+    }
+
+    .emotion_icon {
+      width: 40px;
+      height: 40px;
+      margin-top: 5px;
+      /*margin-left : 13px;*/
+      margin-left: 35px;
+    }
+
+    #emotion_chart,
+    #emotion_icons {
+      margin: 0 auto;
+      width: 400px;
+    }
+
+    #icon1,
+    #icon2,
+    #icon3,
+    #icon4,
+    #icon5,
+    #icon6 {
+      visibility: hidden;
+    }
+
+    /* d3 */
+    .bar {
+      fill: steelblue;
+      fill-opacity: .9;
+    }
+
+    .chart {
+      display: flex;
+      width: 300px;
+      height: 200px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      /* Membuat sudut menjadi bulat */
+      overflow: hidden;
+      /* Mengatasi overflow jika bar terlalu tinggi */
+    }
+
+    .bar {
+      flex: 1;
+      background-color: #0074d9;
+      border-radius: 10px 10px 0 0;
+      /* Membuat sudut atas menjadi bulat */
+      margin: 0 2px;
+      /* Jarak antara setiap bar */
+    }
   </style>
   {{--
   <link rel="stylesheet" href="style.css"> --}}
@@ -100,11 +211,15 @@
               <div class="col-md-12">
                 <div class="box" style="display:flex; flex-direction: column; justify-content:center;">
                   <div class="row">
-                    <div class="col-md-12" id="box-video">
-                      <video id="video" style="width:100%;" autoplay></video>
+                    <div class="col-md-12" style="width: 100%; display:flex; justify-content:center;">
+                      <div id="container" style="padding:0;">
+                        <video id="videoel" width="400" height="300" preload="auto" loop playsinline autoplay></video>
+                        <canvas id="overlay" width="400" height="300"></canvas>
+                      </div>
                     </div>
-                    <div class="col-md-12 hidden" id="box-capture">
-                      <img id="captured" style="width:100%;" />
+                    <div class="col-md-12 hidden" style="width: 100%; display:flex; justify-content:center;"
+                      id="box-capture">
+                      <img id="captured" style="width:400px;" />
                     </div>
                   </div>
                   <div class="row">
@@ -112,6 +227,10 @@
                       style="display:flex; flex-direction: column; justify-content:center; align-items:center;">
                       <div class="action" style="margin-top:30px; display:flex; gap:10px;">
                         {{-- timer to capture --}}
+                        <div class="instruction-box">
+                          <p id="instruction"></p>
+                        </div>
+
                         <div class="timer-box" style="text-align: center;" id="timer_box">
                           <p>Focus to camera</p>
                           <p style="font-weight:20px; font-size:30px;" id="timer">3</p>
@@ -124,6 +243,9 @@
                           </button>
                         </div>
                       </div>
+                    </div>
+                    <div class="col-md-12">
+                      <div id='emotion_chart'></div>
                     </div>
                   </div>
 
@@ -142,6 +264,13 @@
       </div>
     </div>
   </div>
+  <script src="/js/utils.js"></script>
+  <script src="/js/clmtrackr.js"></script>
+  <script src="/js/model_pca_20_svm.js"></script>
+  <script src="/js/stats.js"></script>
+  <script src="/js/d3.min.js"></script>
+  <script src="/js/emotion_classifier.js"></script>
+  <script src="/js/emotionmodel.js"></script>
   <script>
     if('email' in localStorage == false){
       window.location.href = '/login';
@@ -164,27 +293,39 @@
     let boxValidatedFace = document.getElementById('box_validated_face');
     let validateLoading = document.getElementById('validate_loading');
     let modalFooter = document.getElementById('modal_footer');
+    let instruction = document.getElementById('instruction');
+    var vid = document.getElementById('videoel');
+    let container = document.getElementById('container');
+    var vid_width = vid.width;
+    var vid_height = vid.height;
+    var overlay = document.getElementById('overlay');
+    var overlayCC = overlay.getContext('2d');
+    let mediaStream = null;
+    let capturedDone = false;
+    let maxParameter = (Math.floor(Math.random() * (9 - 8 + 1) + 8) / 10);
+    let midParameter = (Math.floor(Math.random() * (6 - 5 + 1) + 5) / 10);
+    let lowParameter = (Math.floor(Math.random() * (4 - 2 + 1) + 2) / 10);
+    console.log(maxParameter);
     const galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
       keyboard: false,
       backdrop: 'static'
     });
-    // const socket = io("http://127.0.0.1:8086", {
-    //   transports: ["websocket"], // Use WebSocket transport
-    //   withCredentials: true,
-    // });
-    const socket = io("lens.staging.endavolabs.com", {
-      transports: ["polling"], // Use WebSocket transport
+    const socket = io("http://127.0.0.1:8086", {
+      transports: ["websocket"], // Use WebSocket transport
       withCredentials: true,
     });
+    let lowParameterResult = false;
+    let midParameterResult = false;
+    let maxParameterResult = false;
+    // const socket = io("lens.staging.endavolabs.com", {
+    //   transports: ["polling"], // Use WebSocket transport
+    //   withCredentials: true,
+    // });
 
     socket.on("biometricLoginResult", (response) => {
       if(response.success){
         email.value = response.result.email;
         form.submit();
-        // validateLoading.classList.add('hidden');
-        // boxValidatedFace.classList.remove('hidden');
-        // validatedFace.src = result.validatedFace;
-        // modalFooter.classList.remove('hidden');
       } else {
         validateLoading.classList.add('hidden');
         faceMatchBox.classList.remove('hidden');
@@ -193,35 +334,38 @@
         galleryModal.hide();
       }
     });
-    async function stream(){
-      try {
-        const captured = document.getElementById('captured');
-        const liststream = await navigator.mediaDevices.enumerateDevices();
-        const videoInput = liststream.filter((device) => {
-          return device.kind == "videoinput" && device.deviceId == "default";
-        })
-        mediaStream = await navigator.mediaDevices.getUserMedia({ video: {deviceId: {exact: videoInput.deviceId}} })
-        videoElement.srcObject = mediaStream;
-        startTimer()
-      } catch (error) {
-        console.log(error)
-      }
 
-// videoElement.srcObject = mediaStream;
-    }
+//     async function stream(){
+//       try {
+//         const captured = document.getElementById('captured');
+//         const liststream = await navigator.mediaDevices.enumerateDevices();
+//         const videoInput = liststream.filter((device) => {
+//           return device.kind == "videoinput" && device.deviceId == "default";
+//         })
+//         mediaStream = await navigator.mediaDevices.getUserMedia({ video: {deviceId: {exact: videoInput.deviceId}} })
+//         videoElement.srcObject = mediaStream;
+//         startTimer()
+//       } catch (error) {
+//         console.log(error)
+//       }
+
+// // videoElement.srcObject = mediaStream;
+//     }
 
     function reset(){
-      boxCapture.classList.add('hidden');
-      boxVideo.classList.remove('hidden');
-      faceMatchBox.classList.add('hidden');
-      resetButton.classList.add('hidden');
-      timer.innerHTML = 3;
-      timerBox.classList.remove('hidden');
-      startTimer();
+      window.location.reload();
+      // boxCapture.classList.add('hidden');
+      // container.classList.remove('hidden');
+      // faceMatchBox.classList.add('hidden');
+      // resetButton.classList.add('hidden');
+      // instruction.classList.add('hidden');
+      // timer.innerHTML = 3;
+      // timerBox.classList.remove('hidden');
+      // capturedDone = false;
+      // startTimer();
     }
 
     function startTimer(){
-
       let count = 3;
       let interval = setInterval(() => {
         count--;
@@ -229,10 +373,21 @@
         if(count == 0){
           clearInterval(interval);
           timerBox.classList.add('hidden');
-          capture();
+          startVideo();
+          // capture();
         }
       }, 1000);
     }
+
+//     function startVideo() {
+//       // start video
+//       vid.play();
+//       // start tracking
+//       ctrack.start(vid);
+//       trackingStarted = true;
+//       // start loop to draw face
+//       drawLoop();
+//     }
 
     async function capture(){
       const empty = document.getElementById('empty');
@@ -242,7 +397,8 @@
       capturedFrame = await imageCapture.takePhoto();
       captured.src = URL.createObjectURL(capturedFrame);
       boxCapture.classList.remove('hidden');
-      boxVideo.classList.add('hidden');
+      container.classList.add('hidden');
+      instruction.classList.add('hidden');
       galleryModal.show();
       validateLoading.classList.remove('hidden');
       const blob = capturedFrame.slice(0, capturedFrame.size, 'image/png'); // Adjust the format if needed
@@ -250,7 +406,261 @@
       // const user_id = {{user_id}};
       socket.emit('biometricLogin', {capturedFile: capturedFile, email: currentEmail });
     }
-    stream()
+//     stream()
+
+				/********** check and set up video/webcam **********/
+
+				function enablestart() {
+					var startbutton = document.getElementById('startbutton');
+					startbutton.value = "start";
+					startbutton.disabled = null;
+				}
+
+				function adjustVideoProportions() {
+					// resize overlay and video if proportions are different
+					// keep same height, just change width
+					var proportion = vid.videoWidth/vid.videoHeight;
+					vid_width = Math.round(vid_height * proportion);
+					vid.width = vid_width;
+					overlay.width = vid_width;
+				}
+
+				function gumSuccess( stream ) {
+          mediaStream = stream;
+					// add camera stream if getUserMedia succeeded
+          startTimer()
+					if ("srcObject" in vid) {
+						vid.srcObject = stream;
+					} else {
+						vid.src = (window.URL && window.URL.createObjectURL(stream));
+					}
+					vid.onloadedmetadata = function() {
+						adjustVideoProportions();
+						vid.play();
+					}
+					vid.onresize = function() {
+						adjustVideoProportions();
+						if (trackingStarted) {
+							ctrack.stop();
+							ctrack.reset();
+							ctrack.start(vid);
+						}
+					}
+				}
+
+				function gumFail() {
+					alert("There was some problem trying to fetch video from your webcam. If you have a webcam, please make sure to accept when the browser asks for access to your webcam.");
+				}
+
+				navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+				window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
+
+				// check for camerasupport
+				if (navigator.mediaDevices) {
+					navigator.mediaDevices.getUserMedia({video : true}).then(gumSuccess).catch(gumFail);
+				} else if (navigator.getUserMedia) {
+					navigator.getUserMedia({video : true}, gumSuccess, gumFail);
+				} else {
+					alert("This demo depends on getUserMedia, which your browser does not seem to support. :(");
+				}
+
+				vid.addEventListener('canplay', enablestart, false);
+
+				/*********** setup of emotion detection *************/
+
+				// set eigenvector 9 and 11 to not be regularized. This is to better detect motion of the eyebrows
+				pModel.shapeModel.nonRegularizedVectors.push(9);
+				pModel.shapeModel.nonRegularizedVectors.push(11);
+
+				var ctrack = new clm.tracker({useWebGL : true});
+				ctrack.init(pModel);
+				var trackingStarted = false;
+
+				function startVideo() {
+					// start video
+					vid.play();
+					// start tracking
+					ctrack.start(vid);
+					trackingStarted = true;
+					// start loop to draw face
+					drawLoop();
+				}
+
+				function drawLoop() {
+					requestAnimFrame(drawLoop);
+					overlayCC.clearRect(0, 0, vid_width, vid_height);
+					//psrElement.innerHTML = "score :" + ctrack.getScore().toFixed(4);
+					if (ctrack.getCurrentPosition()) {
+						ctrack.draw(overlay);
+					}
+					var cp = ctrack.getCurrentParameters();
+					var er = ec.meanPredict(cp);
+					if (er) {
+            er.filter(function (e) {
+              if(e.emotion == 'happy'){
+                if(maxParameterResult){
+                  if(midParameterResult){
+                      if(e.value >= (lowParameter / 2) && e.value < lowParameter){
+                        instruction.innerHTML = "Tambah Senyum lagi...";
+                      } else if(e.value >= lowParameter && e.value < (lowParameter + 0.1)){
+                        if(capturedDone == false){
+                          capturedDone = true;
+                          capture();
+                        }
+                        instruction.innerHTML = "Ok";
+                        lowParameterResult = true
+                      } else if(e.value >= 0 && e.value < 0.1) {
+                        instruction.innerHTML = "Silahkan senyum...";
+                      } else if (e.value >= (lowParameter + 0.1)){
+                        instruction.innerHTML = "Turunkan senyum...";
+                      }
+                  } else {
+                      if(e.value >= (midParameter / 2) && e.value < midParameter){
+                        instruction.innerHTML = "Tambah Senyum lagi...";
+                      } else if(e.value >= midParameter && e.value < (midParameter + 0.1)){
+                        console.log("MID : " + midParameter)
+                        console.log("ACTUAL : " + e.value)
+                        instruction.innerHTML = "Ok";
+                        midParameterResult = true
+                        console.log("OKE MID")
+                      } else if(e.value >= 0 && e.value < 0.1) {
+                        instruction.innerHTML = "Silahkan senyum...";
+                      } else if (e.value >= (midParameter + 0.1)){
+                        instruction.innerHTML = "Turunkan senyum...";
+                      }
+                  }
+                } else {
+
+                    if(e.value >= (maxParameter / 2) && e.value < maxParameter){
+                      instruction.innerHTML = "Tambah Senyum lagi...";
+                    } else if( e.value >= maxParameter){
+                       console.log("MAX : " + maxParameter)
+                    console.log("ACTUAL : " + e.value)
+                      instruction.innerHTML = "Ok";
+                      maxParameterResult = true
+                      console.log("OKE MAX")
+                    } else if(e.value >= 0 && e.value < 0.1) {
+                      instruction.innerHTML = "Silahkan senyum...";
+                    }
+                }
+              }
+              // if(e.emotion == 'happy' && e.value >= (maxParameter / 2) && e.value < maxParameter){
+              //   instruction.innerHTML = "Tambah Senyum lagi...";
+              // } else if(e.emotion == 'happy' && e.value >= maxParameter){
+
+              //   instruction.innerHTML = "Ok";
+              //   if(capturedDone == false){
+              //     capturedDone = true;
+              //     capture();
+              //   }
+              // } else if(e.emotion == 'happy' && e.value >= 0 && e.value < 0.1) {
+              //   instruction.innerHTML = "Silahkan senyum...";
+              // }
+            });
+
+						// updateData(er);
+						// for (var i = 0;i < er.length;i++) {
+						// 	if (er[i].value > 0.4) {
+						// 		document.getElementById('icon'+(i+1)).style.visibility = 'visible';
+						// 	} else {
+						// 		document.getElementById('icon'+(i+1)).style.visibility = 'hidden';
+						// 	}
+						// }
+					}
+				}
+
+				delete emotionModel['disgusted'];
+				delete emotionModel['fear'];
+				var ec = new emotionClassifier();
+				ec.init(emotionModel);
+				var emotionData = ec.getBlank();
+
+				/************ d3 code for barchart *****************/
+
+				// var margin = {top : 20, right : 20, bottom : 10, left : 40},
+				// 	width = 400 - margin.left - margin.right,
+				// 	height = 100 - margin.top - margin.bottom;
+
+				// var barWidth = 30;
+
+				// var formatPercent = d3.format(".0%");
+
+				// var x = d3.scale.linear()
+				// 	.domain([0, ec.getEmotions().length]).range([margin.left, width+margin.left]);
+
+				// var y = d3.scale.linear()
+				// 	.domain([0,1]).range([0, height]);
+
+				// var svg = d3.select("#emotion_chart").append("svg")
+				// 	.attr("width", width + margin.left + margin.right)
+				// 	.attr("height", height + margin.top + margin.bottom)
+
+				// svg.selectAll("rect").
+				// 	data(emotionData).
+				// 	enter().
+				// 	append("svg:rect").
+				// 	attr("x", function(datum, index) { return x(index); }).
+				// 	attr("y", function(datum) { return height - y(datum.value); }).
+				// 	attr("height", function(datum) { return y(datum.value); }).
+				// 	attr("width", barWidth).
+				// 	attr("fill", "#2d578b");
+
+				// svg.selectAll("text.labels").
+				// 	data(emotionData).
+				// 	enter().
+				// 	append("svg:text").
+				// 	attr("x", function(datum, index) { return x(index) + barWidth; }).
+				// 	attr("y", function(datum) { return height - y(datum.value); }).
+				// 	attr("dx", -barWidth/2).
+				// 	attr("dy", "1.2em").
+				// 	attr("text-anchor", "middle").
+				// 	text(function(datum) { return datum.value;}).
+				// 	attr("fill", "white").
+				// 	attr("class", "labels");
+
+				// svg.selectAll("text.yAxis").
+				// 	data(emotionData).
+				// 	enter().append("svg:text").
+				// 	attr("x", function(datum, index) { return x(index) + barWidth; }).
+				// 	attr("y", height).
+				// 	attr("dx", -barWidth/2).
+				// 	attr("text-anchor", "middle").
+				// 	attr("style", "font-size: 12").
+				// 	text(function(datum) { return datum.emotion;}).
+				// 	attr("transform", "translate(0, 18)").
+				// 	attr("class", "yAxis");
+
+				// function updateData(data) {
+				// 	// update
+				// 	var rects = svg.selectAll("rect")
+				// 		.data(data)
+				// 		.attr("y", function(datum) { return height - y(datum.value); })
+				// 		.attr("height", function(datum) { return y(datum.value); });
+				// 	var texts = svg.selectAll("text.labels")
+				// 		.data(data)
+				// 		.attr("y", function(datum) { return height - y(datum.value); })
+				// 		.text(function(datum) {  return datum.value.toFixed(2)});
+
+				// 	// enter
+				// 	rects.enter().append("svg:rect");
+				// 	texts.enter().append("svg:text");
+
+				// 	// exit
+				// 	rects.exit().remove();
+				// 	texts.exit().remove();
+				// }
+
+				/******** stats ********/
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				document.getElementById('container').appendChild( stats.domElement );
+
+				// update stats on every iteration
+				document.addEventListener('clmtrackrIteration', function(event) {
+					stats.update();
+				}, false);
   </script>
 </body>
 

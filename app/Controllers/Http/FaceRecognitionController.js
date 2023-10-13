@@ -338,18 +338,26 @@ class FaceRecognitionController {
             // console.log("avgIntensity1 ", avgIntensity1)
             // console.log("avgIntensity2 ", avgIntensity2)
             // if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
-            threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
-            console.log("THRESHOLD ", threshold)
-            if (threshold <= 0.5) {
-              result = true;
-              message = "Success login"
-              userData = users.rows[0];
-              socket.emit("biometricLoginResult", { success: 1, message: message, result: users.rows[0] })
-            } else {
-              message = "Face not match"
+            try {
+              threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+              console.log("THRESHOLD ", threshold)
+              if (threshold <= 0.5) {
+                result = true;
+                message = "Success login"
+                userData = users.rows[0];
+                socket.emit("biometricLoginResult", { success: 1, message: message, result: users.rows[0] })
+              } else {
+                message = "Face not match"
+                result = false;
+                socket.emit("biometricLoginResult", { success: 0, message: message })
+              }
+            } catch (error) {
+              message = "Face not focused";
               result = false;
               socket.emit("biometricLoginResult", { success: 0, message: message })
             }
+
+
             // } else {
             //   message = "Eye not detect"
             //   result = false;
@@ -467,14 +475,14 @@ class FaceRecognitionController {
             // const avgIntensity2 = await eyeRegion2.mean().x;
             // const blinkThreshold = 90;
             // if (avgIntensity1 < blinkThreshold && avgIntensity2 < blinkThreshold) {
-              threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
-              console.log("THRESHOLD ", threshold)
-              if (threshold <= 0.5) {
-                socket.emit("validateFaceResult", { success: 1, message: "Berhasil Membuat Transaksi" })
-              } else {
-                message = "Face not match"
-                socket.emit("validateFaceResult", { success: 0, message: message })
-              }
+            threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
+            console.log("THRESHOLD ", threshold)
+            if (threshold <= 0.5) {
+              socket.emit("validateFaceResult", { success: 1, message: "Berhasil Membuat Transaksi" })
+            } else {
+              message = "Face not match"
+              socket.emit("validateFaceResult", { success: 0, message: message })
+            }
             // } else {
             //   message = "Eye not detect"
             //   socket.emit("validateFaceResult", { success: 0, message: message })
