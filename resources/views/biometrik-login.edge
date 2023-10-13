@@ -501,20 +501,25 @@
               if(e.emotion == 'happy'){
                 if(maxParameterResult){
                   if(midParameterResult){
-                      if(e.value >= (lowParameter / 2) && e.value < lowParameter){
-                        instruction.innerHTML = "Tambah Senyum lagi...";
-                      } else if(e.value >= lowParameter && e.value < (lowParameter + 0.1)){
+                    if(e.value <= 0.1){
                         if(capturedDone == false){
                           capturedDone = true;
                           capture();
                         }
-                        instruction.innerHTML = "Ok";
-                        lowParameterResult = true
-                      } else if(e.value >= 0 && e.value < 0.1) {
-                        instruction.innerHTML = "Silahkan senyum...";
-                      } else if (e.value >= (lowParameter + 0.1)){
-                        instruction.innerHTML = "Turunkan senyum...";
-                      }
+                    } else {
+                      instruction.innerHTML = "Jangan senyum...";
+                    }
+                      // if(e.value >= (lowParameter / 2) && e.value < lowParameter){
+                      //   instruction.innerHTML = "Tambah Senyum lagi...";
+                      // } else if(e.value >= lowParameter && e.value < (lowParameter + 0.1)){
+
+                      //   instruction.innerHTML = "Ok";
+                      //   lowParameterResult = true
+                      // } else if(e.value >= 0 && e.value < 0.1) {
+                      //   instruction.innerHTML = "Silahkan senyum...";
+                      // } else if (e.value >= 0.1){
+                      //   instruction.innerHTML = "Jangan senyum...";
+                      // }
                   } else {
                       if(e.value >= (midParameter / 2) && e.value < midParameter){
                         instruction.innerHTML = "Tambah Senyum lagi...";
