@@ -341,7 +341,7 @@ class FaceRecognitionController {
             // try {
               threshold = faceapi.euclideanDistance(face1.descriptor, new Float32Array((users.rows[0].marked_kyc.split(",")).map(parseFloat)));
               console.log("THRESHOLD ", threshold)
-              if (threshold <= 0.5) {
+              if (threshold <= 0.52) {
                 result = true;
                 message = "Success login"
                 userData = users.rows[0];
