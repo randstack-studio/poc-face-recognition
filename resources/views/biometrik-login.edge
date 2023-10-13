@@ -305,22 +305,23 @@
     let maxParameter = (Math.floor(Math.random() * (9 - 8 + 1) + 8) / 10);
     let midParameter = (Math.floor(Math.random() * (6 - 5 + 1) + 5) / 10);
     let lowParameter = (Math.floor(Math.random() * (4 - 2 + 1) + 2) / 10);
+    let lowParameterResult = false;
+    let midParameterResult = false;
+    let maxParameterResult = false;
     console.log(maxParameter);
     const galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
       keyboard: false,
       backdrop: 'static'
     });
-    const socket = io("http://127.0.0.1:8086", {
-      transports: ["websocket"], // Use WebSocket transport
-      withCredentials: true,
-    });
-    let lowParameterResult = false;
-    let midParameterResult = false;
-    let maxParameterResult = false;
-    // const socket = io("lens.staging.endavolabs.com", {
-    //   transports: ["polling"], // Use WebSocket transport
+    // const socket = io("http://127.0.0.1:8086", {
+    //   transports: ["websocket"], // Use WebSocket transport
     //   withCredentials: true,
     // });
+
+    const socket = io("lens.staging.endavolabs.com", {
+      transports: ["polling"], // Use WebSocket transport
+      withCredentials: true,
+    });
 
     socket.on("biometricLoginResult", (response) => {
       if(response.success){
