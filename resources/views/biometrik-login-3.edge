@@ -354,43 +354,6 @@
       alert("There was some problem trying to fetch video from your webcam. If you have a webcam, please make sure to accept when the browser asks for access to your webcam.");
     }
 
-
-    pModel.shapeModel.nonRegularizedVectors.push(9);
-    pModel.shapeModel.nonRegularizedVectors.push(11);
-
-    var ctrack = new clm.tracker({useWebGL : true});
-    ctrack.init(pModel);
-    var trackingStarted = false;
-
-    function startVideo() {
-      // start video
-      vid.play();
-      // start tracking
-      ctrack.start(vid);
-      trackingStarted = true;
-      // start loop to draw face
-      // drawLoop();
-    }
-
-
-
-    delete emotionModel['disgusted'];
-    delete emotionModel['fear'];
-    var ec = new emotionClassifier();
-    ec.init(emotionModel);
-    var emotionData = ec.getBlank();
-
-    /******** stats ********/
-
-    stats = new Stats();
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.top = '0px';
-    document.getElementById('container').appendChild( stats.domElement );
-
-    // update stats on every iteration
-    document.addEventListener('clmtrackrIteration', function(event) {
-      stats.update();
-    }, false);
   </script>
 </body>
 
