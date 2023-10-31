@@ -18,6 +18,7 @@ const Route = use('Route')
 
 Route.on('/attendance').render('attendance').middleware(['auth']);
 Route.on('/emotional-face').render('emotional-face');
+Route.on('/mediapipe-face').render('mediapipe-face-landmark');
 Route.get('/realtime-facing','FaceRecognitionController.realtimeFacing').middleware(['auth']);
 
 
