@@ -76,7 +76,7 @@ class AuthController {
     if (auth.user) {
       return response.redirect('/menu');
     }
-    return view.render('biometrik-login-2');
+    return view.render('biometrik-login-3');
   }
 
   async biometricLogin({ request, auth, response }) {

@@ -1,0 +1,397 @@
+<!-- FILEPATH: /F:/Projex/Endavo/BNIL Face Recognition/poc/web-fr-opencv-indent/resources/views/login.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+  <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+  <style>
+    .p-red {
+      color: #FF4D4D;
+    }
+
+    .p-green {
+      color: #00B050;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .text-lg {
+      font-size: 20px;
+    }
+
+    .auth-section-logo {
+      background-color: #006480;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-section-form {
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      gap: 80px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #output_canvas {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      -o-transform: scaleX(-1);
+      -webkit-transform: scaleX(-1);
+      transform: scaleX(-1);
+      -ms-filter: fliph;
+      /*IE*/
+      filter: fliph;
+      /*IE*/
+
+
+    }
+
+    #webcam {
+      -o-transform: scaleX(-1);
+      -webkit-transform: scaleX(-1);
+      transform: scaleX(-1);
+      -ms-filter: fliph;
+      /*IE*/
+      filter: fliph;
+      /*IE*/
+
+
+    }
+
+    #container {
+      position: relative;
+      width: 370px;
+      /*margin : 0px auto;*/
+    }
+
+    #content {
+      margin-top: 50px;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 600px;
+    }
+
+    h2 {
+      font-weight: 400;
+    }
+
+    .btn {
+      font-family: 'Lato';
+      font-size: 16px;
+    }
+
+    #controls {
+      text-align: center;
+    }
+
+    #emotion_container {
+      width: 600px;
+    }
+
+    #emotion_icons {
+      height: 50px;
+      padding-left: 40px;
+    }
+
+    .emotion_icon {
+      width: 40px;
+      height: 40px;
+      margin-top: 5px;
+      /*margin-left : 13px;*/
+      margin-left: 35px;
+    }
+
+    #emotion_chart,
+    #emotion_icons {
+      margin: 0 auto;
+      width: 400px;
+    }
+
+    #icon1,
+    #icon2,
+    #icon3,
+    #icon4,
+    #icon5,
+    #icon6 {
+      visibility: hidden;
+    }
+
+    /* d3 */
+    .bar {
+      fill: steelblue;
+      fill-opacity: .9;
+    }
+
+    .chart {
+      display: flex;
+      width: 300px;
+      height: 200px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      /* Membuat sudut menjadi bulat */
+      overflow: hidden;
+      /* Mengatasi overflow jika bar terlalu tinggi */
+    }
+
+    .bar {
+      flex: 1;
+      background-color: #0074d9;
+      border-radius: 10px 10px 0 0;
+      /* Membuat sudut atas menjadi bulat */
+      margin: 0 2px;
+      /* Jarak antara setiap bar */
+    }
+  </style>
+  {{--
+  <link rel="stylesheet" href="style.css"> --}}
+</head>
+
+<body>
+  <div class="login-container">
+    <section id="demos" class="invisible">
+
+
+      <form method="POST" action="/biometric-login" style="width: 50%;" id="form">
+        {{ csrfField() }}
+        <div class="form-input no-border" style="margin-bottom: 20px;">
+          <input name="email" id="email" type="hidden" class="w-100" />
+        </div>
+      </form>
+      <div class="modal fade" id="submittedModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Biometric Login</h5>
+              <button type="button" class="btn-close hidden" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="validate_loading"
+                style="display: flex; justify-content:center; flex-direction:column; align-items:center; gap:3px;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+
+                </div>
+                <p>Sedang melakukan validasi...</p>
+              </div>
+              <div class="hidden" id="box_validated_face">
+                <img id="validated_face" style="width:100%;" />
+              </div>
+            </div>
+            <div class="modal-footer hidden" id="modal_footer">
+              {{-- <button type="button" class="btn btn-secondary hidden" data-bs-dismiss="modal">Close</button> --}}
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12 col-xs-8">
+        <div class="row">
+          <div class="col-md-6 col-xs-12 container-form">
+            <div class="auth-section-form">
+              <div style="width: 100%; text-align: center" class="bni_logo">
+                <h2 style="color:#F7931D; "> BNI LIFE LENS SYSTEM</h2>
+                {{-- <img style="width: 250px" src="/trivia.png" alt="logo" /> --}}
+                {{-- <img style="width: 250px; display: none" src="~/assets/icon/trivia_bc_meta.jpg" alt="logo" /> --}}
+              </div>
+              <div class="title" style="text-align: center">
+                <h3 class="txt-30 txt-lh-45 title-std bold">
+                  Biometric Login User
+                </h3>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="box" style="display:flex; flex-direction: column; justify-content:center;">
+                    <div class="row">
+                      <div class="col-md-12" style="width: 100%; display:flex; justify-content:center;">
+                        <div id="container" style="padding:0;">
+                          <video id="webcam" width="400" height="300" preload="auto" loop playsinline autoplay></video>
+                          <canvas id="output_canvas" width="400" height="300"></canvas>
+                        </div>
+                      </div>
+                      <div class="col-md-12 hidden" style="width: 100%; display:flex; justify-content:center;"
+                        id="box-capture">
+                        <img id="captured" style="width:400px;" />
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12"
+                        style="display:flex; flex-direction: column; justify-content:center; align-items:center;">
+                        <div class="action" style="margin-top:30px; display:flex; gap:10px;">
+                          {{-- timer to capture --}}
+                          <div class="instruction-box">
+                            <p id="instruction"></p>
+                          </div>
+
+                          <div class="timer-box" style="text-align: center;" id="timer_box">
+                            <p>Focus to camera</p>
+                            <p style="font-weight:20px; font-size:30px;" id="timer">3</p>
+                          </div>
+                          <div class="face-match-box hidden" style="text-align: center;" id="face_match_box">
+                            <p style="font-weight:20px; font-size:30px;" id="face_match_result"></p>
+                            <button class="hidden" id="reset_button" onclick="reset()"
+                              style="background-color:#F15921; border:transparent; color:white; padding:10px 15px; width: 150px; border-radius:10px;">Coba
+                              Lagi
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12 hidden" id="milestone">
+                        {{-- <div id='emotion_chart'></div> --}}
+                      </div>
+                      <div class="col-md-12 hidden">
+                        <div class="blend-shapes">
+                          <ul class="blend-shapes-list" id="video-blend-shapes"></ul>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div class="col-md-6 auth-section-logo d-none d-md-block">
+            <div class="image-container">
+              <img src="/login_cover_center.png" alt="xxx" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="/js/mediapipe.js"></script>
+  <script>
+    if('email' in localStorage == false){
+      window.location.href = '/login';
+    }
+
+    // let captured = document.getElementById('captured');
+
+    let form = document.getElementById('form');
+    let email = document.getElementById('email');
+    let capturedFrame = null;
+    let titleSource = document.getElementById('title_source');
+    let source = document.getElementById('source');
+    let videoElement = document.getElementById('video');
+    // let boxCapture = document.getElementById('box-capture');
+    let boxVideo = document.getElementById('box-video');
+    let validatedFace = document.getElementById('validated_face');
+    let boxValidatedFace = document.getElementById('box_validated_face');
+    // let validateLoading = document.getElementById('validate_loading');
+    let modalFooter = document.getElementById('modal_footer');
+    // let instruction = document.getElementById('instruction');
+    var vid = document.getElementById('webcam');
+    let container = document.getElementById('container');
+    var vid_width = vid.width;
+    var vid_height = vid.height;
+    var overlay = document.getElementById('output_canvas');
+    var overlayCC = overlay.getContext('2d');
+    let mediaStream = null;
+    let capturedDone = false;
+    let maxParameter = (Math.floor(Math.random() * (9 - 8 + 1) + 8) / 10);
+    let midParameter = (Math.floor(Math.random() * (6 - 5 + 1) + 5) / 10);
+    let lowParameter = (Math.floor(Math.random() * (2 - 1 + 1) + 1) / 10);
+    let lowParameterResult = false;
+    let midParameterResult = false;
+    let maxParameterResult = false;
+
+
+    function reset(){
+      window.location.reload();
+    }
+
+
+    function enablestart() {
+      var startbutton = document.getElementById('startbutton');
+      startbutton.value = "start";
+      startbutton.disabled = null;
+    }
+
+    function adjustVideoProportions() {
+      // resize overlay and video if proportions are different
+      // keep same height, just change width
+      var proportion = vid.videoWidth/vid.videoHeight;
+      vid_width = Math.round(vid_height * proportion);
+      vid.width = vid_width;
+      overlay.width = vid_width;
+    }
+
+
+
+    function gumFail() {
+      alert("There was some problem trying to fetch video from your webcam. If you have a webcam, please make sure to accept when the browser asks for access to your webcam.");
+    }
+
+
+    pModel.shapeModel.nonRegularizedVectors.push(9);
+    pModel.shapeModel.nonRegularizedVectors.push(11);
+
+    var ctrack = new clm.tracker({useWebGL : true});
+    ctrack.init(pModel);
+    var trackingStarted = false;
+
+    function startVideo() {
+      // start video
+      vid.play();
+      // start tracking
+      ctrack.start(vid);
+      trackingStarted = true;
+      // start loop to draw face
+      // drawLoop();
+    }
+
+
+
+    delete emotionModel['disgusted'];
+    delete emotionModel['fear'];
+    var ec = new emotionClassifier();
+    ec.init(emotionModel);
+    var emotionData = ec.getBlank();
+
+    /******** stats ********/
+
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '0px';
+    document.getElementById('container').appendChild( stats.domElement );
+
+    // update stats on every iteration
+    document.addEventListener('clmtrackrIteration', function(event) {
+      stats.update();
+    }, false);
+  </script>
+</body>
+
+</html>
