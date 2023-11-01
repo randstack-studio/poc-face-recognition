@@ -29,7 +29,7 @@ const milestoneTypes = new Array(
     name: "Eye Squint",
     landmark: ["eyeSquintLeft", "eyeSquintRight"],
     label: "Tengok Kanan / Kiri",
-    threshold: 0.5,
+    threshold: 0.55,
     status: false,
     message: "Squint detected",
   },
@@ -38,7 +38,7 @@ const milestoneTypes = new Array(
     name: "Open Jaw",
     landmark: ["jawOpen"],
     label: "Buka Mulut",
-    threshold: 0.5,
+    threshold: 0.9,
     status: false,
     message: "Jaw Open detected",
   },
@@ -47,16 +47,16 @@ const milestoneTypes = new Array(
     name: "Smile",
     landmark: ["mouthSmileLeft", "mouthSmileRight"],
     label: "Senyum",
-    threshold: 0.6,
+    threshold: 0.9,
     status: false,
     message: "Smile detected",
   },
   {
     id: 5,
-    name: "Smile",
+    name: "Pucker",
     landmark: ["mouthPucker"],
     label: "Manyunkan Mulut",
-    threshold: 0.7,
+    threshold: 0.98,
     status: false,
     message: "Pucker detected",
   },
@@ -65,7 +65,7 @@ const milestoneTypes = new Array(
     name: "Brow Raise",
     landmark: ["browInnerUp"],
     label: "Naikan Alis",
-    threshold: 0.7,
+    threshold: 0.9,
     status: false,
     message: "Pucker detected",
   }
@@ -74,6 +74,8 @@ const milestoneTypes = new Array(
 let milestoneSelected = [];
 let timer = document.getElementById("timer");
 let timerBox = document.getElementById("timer_box");
+let timeout = document.getElementById("timeout");
+let timerTimeout = document.getElementById("timer_timeout");
 let captured = document.getElementById("captured");
 let boxCapture = document.getElementById("box-capture");
 let container = document.getElementById("container");
@@ -86,6 +88,7 @@ let runningMode = "VIDEO";
 let enableWebcamButton;
 let webcamRunning;
 let mediaStream = null;
+let timeoutIn = null;
 const videoWidth = 480;
 
 // const socket = io("http://127.0.0.1:8086", {
@@ -128,27 +131,65 @@ function startTimer() {
         }
         ids.push(id);
       }
-      milestone.innerHTML = `
-      <p class='p-red text-center text-lg' id="mls-${ids[0]}">${
-        milestoneTypes.find((mls) => mls.id == ids[0]).label
-      }</p>
-      <p class='p-red text-center text-lg' id="mls-${ids[1]}">${
-        milestoneTypes.find((mls) => mls.id == ids[1]).label
-      }</p>
-      <p class='p-red text-center text-lg' id="mls-${ids[2]}">${
-        milestoneTypes.find((mls) => mls.id == ids[2]).label
-      }</p>`;
 
       milestoneSelected = [
-        milestoneTypes.find((mls) => mls.id == ids[0]),
-        milestoneTypes.find((mls) => mls.id == ids[1]),
-        milestoneTypes.find((mls) => mls.id == ids[2]),
+        {
+          ...milestoneTypes.find((mls) => mls.id == ids[0]),
+          order: 1,
+          seconds: Math.floor(Math.random() * 3) + 1,
+        },
+        {
+          ...milestoneTypes.find((mls) => mls.id == ids[1]),
+          order: 2,
+          seconds: Math.floor(Math.random() * 3) + 1,
+        },
+        {
+          ...milestoneTypes.find((mls) => mls.id == ids[2]),
+          order: 3,
+          seconds: Math.floor(Math.random() * 3) + 1,
+        },
       ];
+
+      startTimeout();
+      milestone.innerHTML = `
+      <p class='p-red text-center text-lg' id="mls-${ids[0]}">${
+        "1. " +
+        milestoneSelected.find((mls) => mls.id == ids[0]).label +
+        " (" +
+        milestoneSelected.find((mls) => mls.id == ids[0]).seconds +
+        " detik)"
+      }</p>
+      <p class='p-red text-center text-lg' id="mls-${ids[1]}">${
+        "2. " +
+        milestoneSelected.find((mls) => mls.id == ids[1]).label +
+        " (" +
+        milestoneSelected.find((mls) => mls.id == ids[1]).seconds +
+        " detik)"
+      }</p>
+      <p class='p-red text-center text-lg' id="mls-${ids[2]}">${
+        "3. " +
+        milestoneSelected.find((mls) => mls.id == ids[2]).label +
+        " (" +
+        milestoneSelected.find((mls) => mls.id == ids[2]).seconds +
+        " detik)"
+      }</p>`;
       milestone.classList.remove("hidden");
       clearInterval(interval);
       timerBox.classList.add("hidden");
       // startVideo();
       // capture();
+    }
+  }, 1000);
+}
+
+function startTimeout() {
+  let count = 15;
+  timerTimeout.classList.remove("hidden");
+  timeoutIn = setInterval(() => {
+    count--;
+    timeout.innerHTML = count;
+    if (count == 0) {
+      window.location.reload();
     }
   }, 1000);
 }
@@ -164,6 +205,9 @@ async function createFaceLandmarker() {
     outputFaceBlendshapes: true,
     runningMode,
     numFaces: 1,
+    minFaceDetectionConfidence: 0.93,
+    minFacePresenceConfidence: 0.93,
+    minTrackingConfidence: 0.93,
   });
   demosSection.classList.remove("invisible");
   enableCam();
@@ -316,6 +360,8 @@ function enableCam() {
 }
 
 let lastVideoTime = -1;
+let order = 0;
+let timestamp = null;
 let results = undefined;
 const drawingUtils = new DrawingUtils(canvasCtx);
 async function predictWebcam() {
@@ -403,6 +449,7 @@ async function capture() {
 }
 
 async function sync() {
+  clearInterval(timeoutIn);
   boxCapture.classList.remove("hidden");
   container.classList.add("hidden");
   instruction.classList.add("hidden");
@@ -413,7 +460,10 @@ async function sync() {
     type: "image/png",
   });
   const currentEmail = localStorage.getItem("email");
-  socket.emit('biometricLogin', {capturedFile: capturedFile, email: currentEmail });
+  socket.emit("biometricLogin", {
+    capturedFile: capturedFile,
+    email: currentEmail,
+  });
   // sendSocketLogin(capturedFile);
 }
 
@@ -426,18 +476,35 @@ function drawBlendShapes(el, blendShapes) {
 
   let htmlMaker = "";
   blendShapes[0].categories.map((shape) => {
-    // console.log(shape);
-    milestoneSelected.map((mls) => {
-      if (mls.landmark.includes(shape.categoryName)) {
-        if (shape.score > mls.threshold) {
-          mls.status = true;
-          let el = document.getElementById(`mls-${mls.id}`);
-          el.classList.remove("p-red");
-          el.classList.add("p-green");
+    // milestoneSelected.map((mls) => {
+    //   if (mls.landmark.includes(shape.categoryName)) {
+
+    //   }
+    // });
+    if (milestoneSelected.length > 0) {
+      if (milestoneSelected[order].landmark.includes(shape.categoryName)) {
+        if (shape.score > milestoneSelected[order].threshold) {
+          if (timestamp === null) {
+            timestamp = Date.now(); // Catat waktu awal senyum
+          } else {
+            const currentTime = Date.now();
+            const smileDuration = currentTime - timestamp;
+
+            if (smileDuration >= milestoneSelected[order].seconds * 1000) {
+              milestoneSelected[order].status = true;
+              let el = document.getElementById(
+                `mls-${milestoneSelected[order].id}`
+              );
+              el.classList.remove("p-red");
+              el.classList.add("p-green");
+              timestamp = null;
+              if (order < 2) {
+                order += 1;
+              }
+            }
+          }
         }
       }
-    });
-    if (milestoneSelected.length > 0) {
       if (milestoneSelected.every((mls) => mls.status == true)) {
         if (synced == false) {
           sync();
