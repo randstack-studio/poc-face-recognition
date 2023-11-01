@@ -205,9 +205,9 @@ async function createFaceLandmarker() {
     outputFaceBlendshapes: true,
     runningMode,
     numFaces: 1,
-    minFaceDetectionConfidence: 0.93,
-    minFacePresenceConfidence: 0.93,
-    minTrackingConfidence: 0.93,
+    minFaceDetectionConfidence: 0.96,
+    minFacePresenceConfidence: 0.96,
+    minTrackingConfidence: 0.96,
   });
   demosSection.classList.remove("invisible");
   enableCam();
