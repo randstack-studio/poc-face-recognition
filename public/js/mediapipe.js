@@ -29,7 +29,7 @@ const milestoneTypes = new Array(
     name: "Eye Squint",
     landmark: ["eyeSquintLeft", "eyeSquintRight"],
     label: "Tengok Kanan / Kiri",
-    threshold: 0.55,
+    threshold: 0.5,
     status: false,
     message: "Squint detected",
   },
