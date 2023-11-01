@@ -38,7 +38,7 @@ const milestoneTypes = new Array(
     name: "Open Jaw",
     landmark: ["jawOpen"],
     label: "Buka Mulut",
-    threshold: 0.9,
+    threshold: 0.75,
     status: false,
     message: "Jaw Open detected",
   },
