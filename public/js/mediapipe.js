@@ -51,17 +51,17 @@ const milestoneTypes = new Array(
     status: false,
     message: "Smile detected",
   },
+  // {
+  //   id: 5,
+  //   name: "Pucker",
+  //   landmark: ["mouthPucker"],
+  //   label: "Manyunkan Mulut",
+  //   threshold: 0.98,
+  //   status: false,
+  //   message: "Pucker detected",
+  // },
   {
     id: 5,
-    name: "Pucker",
-    landmark: ["mouthPucker"],
-    label: "Manyunkan Mulut",
-    threshold: 0.98,
-    status: false,
-    message: "Pucker detected",
-  },
-  {
-    id: 6,
     name: "Brow Raise",
     landmark: ["browInnerUp"],
     label: "Naikan Alis",
@@ -136,43 +136,53 @@ function startTimer() {
         {
           ...milestoneTypes.find((mls) => mls.id == ids[0]),
           order: 1,
-          seconds: Math.floor(Math.random() * 3) + 1,
+          seconds: Math.floor(Math.random() * 2) + 1,
         },
         {
           ...milestoneTypes.find((mls) => mls.id == ids[1]),
           order: 2,
-          seconds: Math.floor(Math.random() * 3) + 1,
+          seconds: Math.floor(Math.random() * 2) + 1,
         },
         {
           ...milestoneTypes.find((mls) => mls.id == ids[2]),
           order: 3,
-          seconds: Math.floor(Math.random() * 3) + 1,
+          seconds: Math.floor(Math.random() * 2) + 1,
         },
       ];
 
       startTimeout();
       milestone.innerHTML = `
-      <p class='p-red text-center text-lg' id="mls-${ids[0]}">${
-        "1. " +
-        milestoneSelected.find((mls) => mls.id == ids[0]).label +
+      <div style="display:flex; gap:2px;">
+        <p class='p-red text-center text-lg' id="mls-${ids[0]}">${
+        "1. " + milestoneSelected.find((mls) => mls.id == ids[0]).label
+      }</p>
+        <p class='p-red text-center text-lg' id="mlss-${ids[0]}">${
         " (" +
         milestoneSelected.find((mls) => mls.id == ids[0]).seconds +
         " detik)"
       }</p>
-      <p class='p-red text-center text-lg' id="mls-${ids[1]}">${
-        "2. " +
-        milestoneSelected.find((mls) => mls.id == ids[1]).label +
+      </div>
+      <div style="display:flex; gap:2px;">
+        <p class='p-red text-center text-lg' id="mls-${ids[1]}">${
+        "2. " + milestoneSelected.find((mls) => mls.id == ids[1]).label
+      }</p>
+        <p class='p-red text-center text-lg' id="mlss-${ids[1]}">${
         " (" +
         milestoneSelected.find((mls) => mls.id == ids[1]).seconds +
         " detik)"
       }</p>
-      <p class='p-red text-center text-lg' id="mls-${ids[2]}">${
-        "3. " +
-        milestoneSelected.find((mls) => mls.id == ids[2]).label +
+      </div>
+      <div style="display:flex; gap:2px;">
+        <p class='p-red text-center text-lg' id="mls-${ids[2]}">${
+        "3. " + milestoneSelected.find((mls) => mls.id == ids[2]).label
+      }</p>
+        <p class='p-red text-center text-lg' id="mlss-${ids[2]}">${
         " (" +
         milestoneSelected.find((mls) => mls.id == ids[2]).seconds +
         " detik)"
-      }</p>`;
+      }</p>
+      </div>
+`;
       milestone.classList.remove("hidden");
       clearInterval(interval);
       timerBox.classList.add("hidden");
@@ -475,6 +485,7 @@ function drawBlendShapes(el, blendShapes) {
   // console.log(blendShapes[0]);
 
   let htmlMaker = "";
+  let mlss = null;
   blendShapes[0].categories.map((shape) => {
     // milestoneSelected.map((mls) => {
     //   if (mls.landmark.includes(shape.categoryName)) {
@@ -482,6 +493,7 @@ function drawBlendShapes(el, blendShapes) {
     //   }
     // });
     if (milestoneSelected.length > 0) {
+      mlss = document.getElementById(`mlss-${milestoneSelected[order].id}`);
       if (milestoneSelected[order].landmark.includes(shape.categoryName)) {
         if (shape.score > milestoneSelected[order].threshold) {
           if (timestamp === null) {
@@ -490,6 +502,9 @@ function drawBlendShapes(el, blendShapes) {
             const currentTime = Date.now();
             const smileDuration = currentTime - timestamp;
 
+            let counterMotion =
+              (milestoneSelected[order].seconds * 1000 - smileDuration) / 1000;
+
             if (smileDuration >= milestoneSelected[order].seconds * 1000) {
               milestoneSelected[order].status = true;
               let el = document.getElementById(
@@ -497,15 +512,22 @@ function drawBlendShapes(el, blendShapes) {
               );
               el.classList.remove("p-red");
               el.classList.add("p-green");
+              mlss.innerHTML = ``;
               timestamp = null;
               if (order < 2) {
                 order += 1;
               }
+            } else {
+              mlss.innerHTML = ` (${counterMotion} detik)`;
             }
           }
         }
       }
       if (milestoneSelected.every((mls) => mls.status == true)) {
+        milestoneSelected.forEach((val) => {
+          let secMlss = document.getElementById(`mlss-${val.id}`);
+          secMlss.innerHTML = ``;
+        });
         if (synced == false) {
           sync();
           synced = true;
