@@ -345,11 +345,11 @@ class FaceRecognitionController {
                 result = true;
                 message = "Success login"
                 userData = users.rows[0];
-                socket.emit("biometricLoginResult", { success: 1, message: message, result: users.rows[0] })
+                socket.emit("biometricLoginResult", { success: 1, message: message + " Threshold : " + threshold, result: users.rows[0] })
               } else {
                 message = "Face not match"
                 result = false;
-                socket.emit("biometricLoginResult", { success: 0, message: message })
+                socket.emit("biometricLoginResult", { success: 0, message: message + " Threshold : " + threshold })
               }
             // }
             // catch (error) {

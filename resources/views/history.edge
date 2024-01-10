@@ -79,8 +79,6 @@
       height: 100%;
       object-fit: cover;
     }
-
-
   </style>
 </head>
 
@@ -106,9 +104,13 @@
         <div class="col-md-6" style="margin-bottom:10px;">
           <div class="box" style="display:flex; flex-direction: column; justify-content:center;">
             <div class="box-image">
-              <img src={{"/" + history.captured}} style="width:100%;" />
+              @if(history.captured)
+                <img src={{"/" + history.captured}} style="width:100%;" />
+              @else
+                <img src="https://i.imgflip.com/6yvpkj.jpg" style="width:100%;" />
+              @endif
             </div>
-            <p class="box-title">{{  history.created_at }}</p>
+            <p class="box-title">{{ history.created_at }}</p>
             <p class="box-description" style="margin-bottom: 10px; margin-top:10px;">{{history.message}}</p>
             <p class="box-description" style="font-weight: 600;">Metode : {{history.method}}</p>
             <p class="box-description" style="font-weight: 600;">Status : {{history.status ? 'Valid' : 'Invalid'}}</p>
