@@ -8,12 +8,17 @@ const UserFace = use('App/Models/UserFace');
 class MenuController {
   async index({ view, auth }) {
     const userFace = await UserFace.query().where({ user_id: auth.user.id }).first();
-    console.log(userFace)
     return view.render('menu', {auth: auth.user, update: userFace ? false : true});
   }
 
   async addFace({ view, auth }) {
-    return view.render('add-face', { user_id: auth.user.id });
+    const userFaces = await UserFace.query().where({ user_id: auth.user.id }).fetch();
+    const userFacesFormatted = userFaces.rows.map((face) => {
+      face.created_at = this.formatDate(face.created_at)
+      face.updated_at = this.formatDate(face.updated_at)
+      return face;
+    });
+    return view.render('add-face', { user_id: auth.user.id, userFaces: userFacesFormatted });
   }
 
   async attendance({ view, auth }) {
@@ -42,8 +47,6 @@ class MenuController {
       history.updated_at = this.formatDate(history.updated_at)
       return history;
     });
-
-    console.log(formattedHistories)
     return view.render('history', { user_id: auth.user.id, histories: formattedHistories });
   }
 
