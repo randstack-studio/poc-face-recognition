@@ -339,33 +339,55 @@ class FaceRecognitionController {
           .detectSingleFace(image1)
           .withFaceLandmarks()
           .withFaceDescriptor();
-        console.log(face1.descriptor.toString());
         // DRAW FACE
         const imageRaw = await cv.imreadAsync(sharpedPhotoPath);
-        const faces = classifier.detectMultiScale(imageRaw);
-        faces.objects.forEach((faceRect) => {
-          const { x, y, width, height } = faceRect;
-          imageRaw.drawRectangle(
-            new cv.Rect(x, y, width, height),
-            new cv.Vec(0, 255, 0),
-            2
+
+        // MATCHING
+        // const templatePath = Helpers.publicPath("wrong_template.png");
+        const templatePath = Helpers.publicPath("kyc_template_2.jpg");
+        const template = await cv.imreadAsync(templatePath);
+        console.log("templatePath ", template);
+        const matched = template.matchTemplate(imageRaw, cv.TM_CCORR_NORMED);
+        // Use minMaxLoc to find the location with the highest matching value
+        const { maxLoc, maxVal } = matched.minMaxLoc();
+        // If the highest matching value is above a certain threshold, consider the uploaded image as a KTP
+        // console.log("maxLoc ", maxLoc);
+        // console.log("maxVal ", maxVal);
+        const threshold = 0.91;
+        console.log(maxLoc);
+        console.log(maxVal);
+        if (maxVal > threshold) {
+          const faces = classifier.detectMultiScale(imageRaw);
+          faces.objects.forEach((faceRect) => {
+            const { x, y, width, height } = faceRect;
+            imageRaw.drawRectangle(
+              new cv.Rect(x, y, width, height),
+              new cv.Vec(0, 255, 0),
+              2
+            );
+          });
+
+          const markedImagePath = Helpers.publicPath(
+            `marked_${path.basename(sharpedPhotoPath)}`
           );
-        });
 
-        const markedImagePath = Helpers.publicPath(
-          `marked_${path.basename(sharpedPhotoPath)}`
-        );
+          await cv.imwriteAsync(markedImagePath, imageRaw);
 
-        await cv.imwriteAsync(markedImagePath, imageRaw);
-
-        result = {
-          success: 1,
-          message: "Success verify",
-          result: {
-            image: `marked_${path.basename(sharpedPhotoPath)}`,
-            descriptor: face1.descriptor.toString(),
-          },
-        };
+          result = {
+            success: 1,
+            message: "Success verify",
+            result: {
+              image: `marked_${path.basename(sharpedPhotoPath)}`,
+              descriptor: face1.descriptor.toString(),
+            },
+          };
+        } else {
+          result = {
+            success: 0,
+            message: "KTP is not valid",
+            result: null,
+          };
+        }
       } catch (error) {
         console.log(error);
         result = { success: 0, message: error.message, result: null };
