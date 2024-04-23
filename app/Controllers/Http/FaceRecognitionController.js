@@ -533,7 +533,7 @@ class FaceRecognitionController {
         // }
       } catch (error) {
         console.log(error);
-        result = { success: 0, message: "Error Try-Catch", result: null };
+        result = { success: 0, message: error, result: null };
       }
 
       socket.emit("validateKycResult", result);
