@@ -335,8 +335,7 @@ class FaceRecognitionController {
               // });
               // const desiredName = filteredNameWords.join(" ");
 
-              const [day, month, year] =
-                user_information.rows[0].birth_date.split("-");
+              const [day, month, year] = user_information.rows[0].birth_date.split("-");
               const formattedDate = `${year}-${month}-${day}`;
 
               console.log({
@@ -460,80 +459,80 @@ class FaceRecognitionController {
         const { maxLoc, maxVal } = matched.minMaxLoc();
         const threshold = 0.91;
 
-        // if (maxVal > threshold) {
-        const faces = classifier.detectMultiScale(imageRaw);
-        faces.objects.forEach((faceRect) => {
-          const { x, y, width, height } = faceRect;
-          imageRaw.drawRectangle(
-            new cv.Rect(x, y, width, height),
-            new cv.Vec(0, 255, 0),
-            2
-          );
-        });
+        if (maxVal > threshold) {
+          const faces = classifier.detectMultiScale(imageRaw);
+          faces.objects.forEach((faceRect) => {
+            const { x, y, width, height } = faceRect;
+            imageRaw.drawRectangle(
+              new cv.Rect(x, y, width, height),
+              new cv.Vec(0, 255, 0),
+              2
+            );
+          });
 
-        const markedImagePath = Helpers.publicPath(
-          `marked_${path.basename(sharpedPhotoPath)}`
-        );
-
-        await cv.imwriteAsync(markedImagePath, imageRaw);
-
-        /** BOIVA INTEGRATION KTP OCR */
-        let kyc_information = null;
-        try {
-          const token = await axios.get(
-            "https://sandbox.boiva.id/b2b/v0/token",
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-Client-Id": "coihi028dihs5rhsai3g",
-                "X-Client-Key": "coihi028dihs5rhsai40",
-              },
-            }
+          const markedImagePath = Helpers.publicPath(
+            `marked_${path.basename(sharpedPhotoPath)}`
           );
 
-          if (token.status == 200) {
-            const base64image = Buffer.from(capturedFile).toString("base64");
-            const ocrResponse = await axios.post(
-              "https://sandbox.boiva.id/b2b/v0/ktp-ocr",
-              {
-                ktp_photo: base64image,
-              },
+          await cv.imwriteAsync(markedImagePath, imageRaw);
+
+          /** BOIVA INTEGRATION KTP OCR */
+          let kyc_information = null;
+          try {
+            const token = await axios.get(
+              "https://sandbox.boiva.id/b2b/v0/token",
               {
                 headers: {
-                  Authorization: token.data.token,
+                  "Content-Type": "application/json",
+                  "X-Client-Id": "coihi028dihs5rhsai3g",
+                  "X-Client-Key": "coihi028dihs5rhsai40",
                 },
               }
             );
 
-            if (ocrResponse.status == 200) {
-              kyc_information = ocrResponse.data.data;
+            if (token.status == 200) {
+              const base64image = Buffer.from(capturedFile).toString("base64");
+              const ocrResponse = await axios.post(
+                "https://sandbox.boiva.id/b2b/v0/ktp-ocr",
+                {
+                  ktp_photo: base64image,
+                },
+                {
+                  headers: {
+                    Authorization: token.data.token,
+                  },
+                }
+              );
+
+              if (ocrResponse.status == 200) {
+                kyc_information = ocrResponse.data.data;
+              }
             }
+          } catch (error) {
+            // console.log(error);
           }
-        } catch (error) {
-          // console.log(error);
+
+          /** BOIVA INTEGRATION KTP OCR */
+
+          result = {
+            success: 1,
+            message: "Success verify",
+            result: {
+              image: `marked_${path.basename(sharpedPhotoPath)}`,
+              descriptor: face1.descriptor.toString(),
+              kyc_information: kyc_information,
+            },
+          };
+        } else {
+          result = {
+            success: 0,
+            message: "KTP is not valid",
+            result: null,
+          };
         }
-
-        /** BOIVA INTEGRATION KTP OCR */
-
-        result = {
-          success: 1,
-          message: "Success verify",
-          result: {
-            image: `marked_${path.basename(sharpedPhotoPath)}`,
-            descriptor: face1.descriptor.toString(),
-            kyc_information: kyc_information,
-          },
-        };
-        // } else {
-        //   result = {
-        //     success: 0,
-        //     message: "KTP is not valid",
-        //     result: null,
-        //   };
-        // }
       } catch (error) {
         console.log(error);
-        result = { success: 0, message: error, result: null };
+        result = { success: 0, message: error.message, result: null };
       }
 
       socket.emit("validateKycResult", result);
