@@ -101,9 +101,11 @@ class AuthController {
           }
         }
       } catch (error) {
-        message = error.response.data.errors[0].message
-          ? error?.response?.data?.errors[0]?.message
-          : "Provider phone number not supported (Boiva)";
+        // message = error.response.data.errors[0].message
+        //   ? error?.response?.data?.errors[0]?.message
+        //   : "Provider phone number not supported (Boiva)";
+        message =
+          "Untuk sementara, provider nomoer telpon anda belum di support untuk melakukan verifikasi. Namun data tetap bisa disimpan.";
       }
       /** CHECK PHONUMBER VIA BOIVA */
 
