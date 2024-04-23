@@ -26,6 +26,7 @@ class AuthController {
   }
 
   async create({ view, request, response }) {
+    let message = null;
     try {
       const {
         email,
@@ -100,7 +101,9 @@ class AuthController {
           }
         }
       } catch (error) {
-        console.log(error);
+        message = error.response.data.errors[0].message
+          ? error?.response?.data?.errors[0]?.message
+          : "Provider phone number not supported (Boiva)";
       }
       /** CHECK PHONUMBER VIA BOIVA */
 
@@ -132,7 +135,10 @@ class AuthController {
 
       // return response.redirect('/login');
       return view.render("create", {
-        data: { success: 1, message: "User berhasil dibuat" },
+        data: {
+          success: 1,
+          message: message ? message : "User berhasil dibuat",
+        },
       });
     } catch (error) {
       console.log(error);
