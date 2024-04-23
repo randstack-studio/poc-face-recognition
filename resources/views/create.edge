@@ -162,11 +162,125 @@
                     <input name="email" type="email" class="w-100" v-model="form.agent_number" placeholder="XXX" />
                   </div>
                   <br />
+                  <div class="form-input auth">
+                    <label>Phonenumber</label>
+                    <input name="phone_number" type="text" class="w-100" placeholder="XXX" />
+                  </div>
+                  <br />
                   <div class="form-input no-border" style="margin-bottom: 20px;">
                     <label>Password</label>
                     <input name="password" type="password" class="w-100" v-model="form.agent_number"
                       placeholder="XXX" />
                   </div>
+                  <div id="" class="">
+                    <div id="information" class="hidden">
+                      <div class="form-input auth">
+                          <label>NIK</label>
+                          <input name="kyc_number" type="text" class="w-100" id="kyc_number"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Name</label>
+                          <input name="fullname" type="text" class="w-100" id="fullname"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Birth Place</label>
+                          <input name="birth_place" type="text" class="w-100" id="birth_place"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Birth Date</label>
+                          <input name="birth_date" type="text" class="w-100" id="birth_date"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Gender</label>
+                          <input name="gender" type="text" class="w-100" id="gender"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Address</label>
+                          <input name="address" type="text" class="w-100" id="address"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>RT/RW</label>
+                          <input name="rt_rw" type="text" class="w-100" id="rt_rw"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Village</label>
+                          <input name="village" type="text" class="w-100" id="village"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>District</label>
+                          <input name="district" type="text" class="w-100" id="district"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Province</label>
+                          <input name="province" type="text" class="w-100" id="province"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>City</label>
+                          <input name="city" type="text" class="w-100" id="city"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Religion</label>
+                          <input name="religion" type="text" class="w-100" id="religion"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Blood Type</label>
+                          <input name="blood_type" type="text" class="w-100" id="blood_type"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Marital Status</label>
+                          <input name="marital_status" type="text" class="w-100" id="marital_status"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Citizenship</label>
+                          <input name="citizenship" type="text" class="w-100" id="citizenship"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Job</label>
+                          <input name="job" type="text" class="w-100" id="job"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                      <div class="form-input auth">
+                          <label>Valid Until</label>
+                          <input name="valid_until" type="text" class="w-100" id="valid_until"
+                              placeholder="XXX" readonly />
+                      </div>
+                      <br />
+                  </div>
+
+                  </div>
+
+                  <br />
                   <div class="form-input no-border" style="margin-bottom: 20px;">
                     <label>KTP</label>
                     <input name="kyc" id="kyc_input" type="file" class="w-100" onchange="validateKyc(event)" />
@@ -177,6 +291,7 @@
                   <div class="form-input no-border" style="margin-bottom: 20px;">
                     <input name="origin_kyc" id="origin_kyc" type="hidden" class="w-100" />
                   </div>
+
                   <button class="btn btn-primary w-100" type="submit">
                     Buat
                   </button>
@@ -191,6 +306,7 @@
               <div id="box_validate_face" class="hidden">
                 <img id="validated_face" style="width:100%;" />
               </div>
+
               <br />
             </div>
 
@@ -232,6 +348,30 @@
         // modalFooter.classList.remove('hidden');
         document.getElementById('marked_kyc').value = data.result.descriptor;
         document.getElementById('origin_kyc').value = data.result.image;
+
+        // PUT INFORMATION KYC TO FORM
+        if(data.result?.kyc_information){
+          document.getElementById('information').classList.remove('hidden');
+          document.getElementById('kyc_number').value = data.result?.kyc_information?.ktp;
+          document.getElementById('fullname').value = data.result?.kyc_information?.fullname;
+          document.getElementById('birth_place').value = data.result?.kyc_information?.birth_place;
+          document.getElementById('birth_date').value = data.result?.kyc_information?.birth_date;
+          document.getElementById('gender').value = data.result?.kyc_information?.gender;
+          document.getElementById('address').value = data.result?.kyc_information?.address;
+          document.getElementById('rt_rw').value = data.result?.kyc_information?.rt_rw;
+          document.getElementById('village').value = data.result?.kyc_information?.village;
+          document.getElementById('district').value = data.result?.kyc_information?.district;
+          document.getElementById('province').value = data.result?.kyc_information?.province;
+          document.getElementById('city').value = data.result?.kyc_information?.city;
+          document.getElementById('religion').value = data.result?.kyc_information?.religion;
+          document.getElementById('blood_type').value = data.result?.kyc_information?.blood_type;
+          document.getElementById('marital_status').value = data.result?.kyc_information?.marital_status;
+          document.getElementById('citizenship').value = data.result?.kyc_information?.citizenship;
+          document.getElementById('job').value = data.result?.kyc_information?.job;
+          document.getElementById('valid_until').value = data.result?.kyc_information?.valid_until;
+        }
+
+
         galleryModal.hide();
       } else {
         alert('KTP tidak valid');

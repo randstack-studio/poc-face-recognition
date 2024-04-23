@@ -2,6 +2,7 @@
 require("@tensorflow/tfjs");
 require("@tensorflow/tfjs-core");
 require("@tensorflow/tfjs-node");
+const axios = require("axios");
 const cv = require("opencv4nodejs");
 const Helpers = use("Helpers");
 const fs = require("fs");
@@ -12,6 +13,7 @@ const canvas = require("canvas");
 const io = require("socket.io");
 const UserFace = use("App/Models/UserFace");
 const User = use("App/Models/User");
+const UserInformation = use("App/Models/UserInformation");
 const AttendanceHistory = use("App/Models/AttendanceHistory");
 const { Canvas, Image, ImageData } = canvas;
 class FaceRecognitionController {
@@ -231,6 +233,12 @@ class FaceRecognitionController {
           .where({ id: user_id })
           .limit(1)
           .fetch();
+
+        const user_information = await UserInformation.query()
+          .where({ user_id: user_id })
+          .limit(1)
+          .fetch();
+
         const filename = `user_face_${Date.now()}.png`;
         const photoPath = Helpers.publicPath(filename);
         fs.writeFile(photoPath, capturedFile, (err) => {
@@ -258,51 +266,151 @@ class FaceRecognitionController {
         const faces = classifier.detectMultiScale(imageRaw);
 
         if (faces.objects.length === 1) {
-          await faces.objects.forEach(async (face) => {
-            const faceRegion = await imageRaw.getRegion(face);
-            threshold = faceapi.euclideanDistance(
-              face1.descriptor,
-              new Float32Array(
-                users.rows[0].marked_kyc.split(",").map(parseFloat)
-              )
+          /**  THIS FLOW MATCHING WITH KYC MARKED */
+          // await faces.objects.forEach(async (face) => {
+          //   const faceRegion = await imageRaw.getRegion(face);
+          //   threshold = faceapi.euclideanDistance(
+          //     face1.descriptor,
+          //     new Float32Array(
+          //       users.rows[0].marked_kyc.split(",").map(parseFloat)
+          //     )
+          //   );
+          //   const { x, y, width, height } = face;
+          //   imageRaw.drawRectangle(
+          //     new cv.Rect(x, y, width, height),
+          //     new cv.Vec(0, 255, 0),
+          //     2
+          //   );
+          //   if (threshold <= 0.5) {
+          //     return;
+          //   }
+          // });
+          // if (threshold <= 0.5) {
+          //   const markedImagePath = Helpers.publicPath(
+          //     `marked_${path.basename(photoPath)}`
+          //   );
+          //   await cv.imwriteAsync(markedImagePath, imageRaw);
+          //   const userFace = new UserFace();
+          //   userFace.user_id = user_id;
+          //   userFace.image = filename;
+          //   userFace.image_face_marked = `marked_${path.basename(photoPath)}`;
+          //   userFace.image_face_description = face1.descriptor.toString();
+          //   await userFace.save();
+          //   result = {
+          //     success: 1,
+          //     message: "Success add face",
+          //     result: `marked_${path.basename(photoPath)}`,
+          //   };
+          // } else {
+          //   result = { success: 0, message: "Face not match" };
+          // }
+          /**  THIS FLOW MATCHING WITH KYC MARKED */
+
+          /**  THIS FLOW MATCHING WITH KYC BOIVA IDENTITY VERIFICATION */
+          try {
+            const token = await axios.get(
+              "https://sandbox.boiva.id/b2b/v0/token",
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Client-Id": "coihi028dihs5rhsai3g",
+                  "X-Client-Key": "coihi028dihs5rhsai40",
+                },
+              }
             );
-            const { x, y, width, height } = face;
-            imageRaw.drawRectangle(
-              new cv.Rect(x, y, width, height),
-              new cv.Vec(0, 255, 0),
-              2
-            );
-            if (threshold <= 0.5) {
-              return;
+
+            if (token.status == 200) {
+              const base64image = Buffer.from(capturedFile).toString("base64");
+              const formattedFullName = user_information.rows[0].fullname
+                .toLowerCase()
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
+                .join(" ");
+
+              // const parts = formattedFullName.split(", ");
+              // const mainName = parts[0];
+              // const nameWords = mainName.split(" ");
+              // const filteredNameWords = nameWords.filter((word) => {
+              //   return !word.includes(".");
+              // });
+              // const desiredName = filteredNameWords.join(" ");
+
+              const [day, month, year] = user_information.rows[0].birth_date.split("-");
+              const formattedDate = `${year}-${month}-${day}`;
+
+              console.log({
+                phone_number: users.rows[0].phone_number,
+                email: users.rows[0].email,
+                ktp: user_information.rows[0].kyc_number,
+                fullname: formattedFullName,
+                birth_date: formattedDate,
+              });
+              const identityResponse = await axios.post(
+                "https://sandbox.boiva.id/b2b/v1/identity-verification",
+                {
+                  phone_number: "62895369163319",
+                  email: users.rows[0].email,
+                  ktp: user_information.rows[0].kyc_number,
+                  fullname: formattedFullName,
+                  birth_date: formattedDate,
+                  selfie_photo: base64image,
+                },
+                {
+                  headers: {
+                    Authorization: token.data.token,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              if (identityResponse.status == 200) {
+                const selfiePhotoStatusObj = identityResponse.data.fields.find(
+                  (field) => field.field === "selfie_photo"
+                );
+                console.log(identityResponse, selfiePhotoStatusObj);
+                if (selfiePhotoStatusObj?.status == "true") {
+                  const markedImagePath = Helpers.publicPath(
+                    `marked_${path.basename(photoPath)}`
+                  );
+                  await cv.imwriteAsync(markedImagePath, imageRaw);
+                  const userFace = new UserFace();
+                  userFace.user_id = user_id;
+                  userFace.image = filename;
+                  userFace.image_face_marked = `marked_${path.basename(
+                    photoPath
+                  )}`;
+                  userFace.image_face_description = face1.descriptor.toString();
+                  await userFace.save();
+
+                  result = {
+                    success: 1,
+                    message: "Success add face",
+                    result: `marked_${path.basename(photoPath)}`,
+                  };
+                } else {
+                  result = {
+                    success: 0,
+                    message: "Face not match with dukcapil (Boiva)",
+                  };
+                }
+              }
             }
-          });
-          if (threshold <= 0.5) {
-            const markedImagePath = Helpers.publicPath(
-              `marked_${path.basename(photoPath)}`
-            );
-            await cv.imwriteAsync(markedImagePath, imageRaw);
-            const userFace = new UserFace();
-            userFace.user_id = user_id;
-            userFace.image = filename;
-            userFace.image_face_marked = `marked_${path.basename(photoPath)}`;
-            userFace.image_face_description = face1.descriptor.toString();
-            await userFace.save();
+          } catch (error) {
             result = {
-              success: 1,
-              message: "Success add face",
-              result: `marked_${path.basename(photoPath)}`,
+              success: 0,
+              message: "Something wrong with boiva : " + error?.message,
             };
-          } else {
-            result = { success: 0, message: "Face not match" };
           }
+          /** BOIVA INTEGRATION IDENTITY VERIFICATION */
         } else {
-          result = { success: 0, message: "Face not detect" };
+          result = { success: 0, message: "Face not detect X" };
         }
       } catch (error) {
-        result = { success: 0, message: "Face not detect" };
+        result = { success: 0, message: "Face not detect Y" };
       }
       socket.emit("addFaceResult", result);
     });
+
     socket.on("validateKyc", async (capturedFile) => {
       let result = null;
       try {
@@ -346,16 +454,11 @@ class FaceRecognitionController {
         // const templatePath = Helpers.publicPath("wrong_template.png");
         const templatePath = Helpers.publicPath("kyc_template_2.jpg");
         const template = await cv.imreadAsync(templatePath);
-        console.log("templatePath ", template);
+
         const matched = template.matchTemplate(imageRaw, cv.TM_CCORR_NORMED);
-        // Use minMaxLoc to find the location with the highest matching value
         const { maxLoc, maxVal } = matched.minMaxLoc();
-        // If the highest matching value is above a certain threshold, consider the uploaded image as a KTP
-        // console.log("maxLoc ", maxLoc);
-        // console.log("maxVal ", maxVal);
         const threshold = 0.91;
-        console.log(maxLoc);
-        console.log(maxVal);
+
         if (maxVal > threshold) {
           const faces = classifier.detectMultiScale(imageRaw);
           faces.objects.forEach((faceRect) => {
@@ -373,12 +476,51 @@ class FaceRecognitionController {
 
           await cv.imwriteAsync(markedImagePath, imageRaw);
 
+          /** BOIVA INTEGRATION KTP OCR */
+          let kyc_information = null;
+          try {
+            const token = await axios.get(
+              "https://sandbox.boiva.id/b2b/v0/token",
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Client-Id": "coihi028dihs5rhsai3g",
+                  "X-Client-Key": "coihi028dihs5rhsai40",
+                },
+              }
+            );
+
+            if (token.status == 200) {
+              const base64image = Buffer.from(capturedFile).toString("base64");
+              const ocrResponse = await axios.post(
+                "https://sandbox.boiva.id/b2b/v0/ktp-ocr",
+                {
+                  ktp_photo: base64image,
+                },
+                {
+                  headers: {
+                    Authorization: token.data.token,
+                  },
+                }
+              );
+
+              if (ocrResponse.status == 200) {
+                kyc_information = ocrResponse.data.data;
+              }
+            }
+          } catch (error) {
+            // console.log(error);
+          }
+
+          /** BOIVA INTEGRATION KTP OCR */
+
           result = {
             success: 1,
             message: "Success verify",
             result: {
               image: `marked_${path.basename(sharpedPhotoPath)}`,
               descriptor: face1.descriptor.toString(),
+              kyc_information: kyc_information,
             },
           };
         } else {

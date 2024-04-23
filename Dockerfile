@@ -36,4 +36,5 @@ RUN npm i --save node-gyp
 RUN npm i --save node-pre-gyp
 RUN npm i --save socket.io
 RUN npm i --save mysql
+RUN npm i --save axios
 # Start your Node.js application

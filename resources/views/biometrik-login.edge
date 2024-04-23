@@ -311,15 +311,15 @@
       keyboard: false,
       backdrop: 'static'
     });
-    const socket = io("http://127.0.0.1:8086", {
-      transports: ["websocket"], // Use WebSocket transport
-      withCredentials: true,
-    });
-
-    // const socket = io("lens.staging.endavolabs.com", {
-    //   transports: ["polling"], // Use WebSocket transport
+    // const socket = io("http://127.0.0.1:8086", {
+    //   transports: ["websocket"], // Use WebSocket transport
     //   withCredentials: true,
     // });
+
+    const socket = io("lens.staging.endavolabs.com", {
+      transports: ["polling"], // Use WebSocket transport
+      withCredentials: true,
+    });
 
     socket.on("biometricLoginResult", (response) => {
       if(response.success){
