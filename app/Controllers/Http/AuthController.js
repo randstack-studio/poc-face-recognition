@@ -94,7 +94,7 @@ class AuthController {
               return view.render("create", {
                 data: {
                   success: 0,
-                  message: "Nomor telpon tidak terdaftar (Boiva)",
+                  message: "Nomor telpon tidak terdaftar",
                 },
               });
             }

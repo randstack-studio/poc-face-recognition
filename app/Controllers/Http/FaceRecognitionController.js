@@ -390,7 +390,7 @@ class FaceRecognitionController {
                 } else {
                   result = {
                     success: 0,
-                    message: "Face not match with dukcapil (Boiva)",
+                    message: "Face not match with dukcapil",
                   };
                 }
               }
@@ -398,7 +398,7 @@ class FaceRecognitionController {
           } catch (error) {
             result = {
               success: 0,
-              message: "Something wrong with boiva : " + error?.message,
+              message: "Something wrong : " + error?.message,
             };
           }
           /** BOIVA INTEGRATION IDENTITY VERIFICATION */
