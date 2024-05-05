@@ -4,6 +4,7 @@ const AttendanceHistory = use("App/Models/AttendanceHistory");
 
 const User = use('App/Models/User');
 const UserFace = use('App/Models/UserFace');
+const UserChecker = use('App/Models/UserChecker');
 // const auth = use('Auth');
 class MenuController {
   async index({ view, auth }) {
@@ -38,6 +39,17 @@ class MenuController {
     });
 
     return view.render('users', { users: formattedUsers });
+  }
+
+  async userVerification({ view, auth }) {
+    const users = await UserChecker.query().fetch();
+    const formattedUsers = users.rows.map((history) => {
+      history.created_at = this.formatDate(history.created_at)
+      history.updated_at = this.formatDate(history.updated_at)
+      return history;
+    });
+
+    return view.render('user-verification', { users: users.rows });
   }
 
   async history({ view, auth }) {

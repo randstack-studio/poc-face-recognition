@@ -1,0 +1,797 @@
+<!-- FILEPATH: /F:/Projex/Endavo/BNIL Face Recognition/poc/web-fr-opencv-indent/resources/views/login.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+    integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    .auth-section-logo {
+      background-color: #006480;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-section-form {
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      gap: 80px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .login-container {
+      max-width: 1185px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      margin: auto;
+    }
+
+    .container-form {
+      margin-top: 20px;
+    }
+  </style>
+  {{--
+  <link rel="stylesheet" href="style.css"> --}}
+</head>
+
+<body>
+
+  <div class="login-container" style="padding-bottom: 50px;">
+    <div class="modal fade" id="submittedModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Verifikasi KTP</h5>
+            <button type="button" class="btn-close hidden" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="validate_loading"
+              style="display: flex; justify-content:center; flex-direction:column; align-items:center; gap:3px;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p>Sedang melakukan pengecekan...</p>
+            </div>
+          </div>
+          <div class="modal-footer hidden" id="modal_footer">
+            {{-- <button type="button" class="btn btn-secondary hidden" data-bs-dismiss="modal">Close</button> --}}
+            <button type="button" id="modal-close" class="btn btn-primary" data-bs-dismiss="modal">Ok!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;margin-bottom:20px; ">
+      <div style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px; display:flex; align-items:center; gap:10px;">
+        {{-- BACK BUTTON --}}
+        <div style="cursor:pointer;" onclick="window.location.href = '/menu'">
+          <i class="bi bi-arrow-left"></i>
+        </div>
+
+        <p class="txt txt-16 txt-lh-18 txt-cl-turqoise bold mb-0" style="font-size:20px; font-weight:bold;">
+          BEKYc Verificator
+        </p>
+      </div>
+    </div>
+    <div class="col-md-12 col-xs-8">
+      <div class="row">
+        <div class="col-md-12 col-xs-12 container-form">
+          <br />
+          <div id="product-form" style="border: 1px solid #F15117; padding: 20px; border-radius:10px; margin-bottom: 20px;">
+            <div class="row" >
+              <div class="col-md-6" style="padding: 0px 50px;">
+                <p class="box-title" style="color: #F15117; font-weight:bold; font-size: 22px;">Produk BNI Life
+                </p>
+                <select class="form-select" id="product" style="border: 1px solid #F15117;" aria-label="Default select example">
+                  <option selected>Pilih produk</option>
+                  <option value="Jiwa">Jiwa</option>
+                  <option value="Kesehatan">Kesehatan</option>
+                  <option value="Pendidikan">Pendidikan</option>
+                  <option value="Investasi">Investasi</option>
+                  <option value="Hari Tua">Hari Tua</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div id="cpp-form" style="border: 1px solid #F15117; padding: 20px; border-radius:10px; margin-bottom: 20px;">
+            <div class="row" >
+              <div class="col-md-12" style="padding: 0px 50px;">
+                <p class="box-title" style="color: #F15117; font-weight:bold; font-size: 22px;">Policy Holder Name (CPP)
+                </p>
+                <hr style=""/>
+              </div>
+            </div>
+            <div class="row" >
+              <div class="col-md-6" style="padding: 0px 50px;" >
+                  <p><b>Unggah KTP</b></p>
+                  <div id="validate_loading" class="hidden" style="display: flex; flex-direction:column; gap:3px;">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang melakukan pengecekan...</p>
+                  </div>
+                  <div id="box_placeholder">
+                    <img src="/ktp_placholder.png" id="empty" style="max-width:100%; margin-bottom:15px;" />
+                  </div>
+
+                  <div id="box_validate_face" class="hidden">
+                    <img id="validated_face" style="width:100%;" style="max-width:100%; margin-bottom:15px;"/>
+                  </div>
+                  <br />
+                  <input name="kyc" id="kyc_input" type="file" class="w-100" onchange="validateKyc(event, 'cpp')" />
+                  <div class="form-input no-border" style="margin-bottom: 20px;">
+                    <input name="origin_kyc" id="origin_kyc" type="hidden" class="w-100" />
+                  </div>
+              </div>
+              <div class="col-md-6" style="padding: 0px 50px;" >
+                  <p><b>Ambil Foto Selfie</b></p>
+                  <div id="box_selfie">
+                    <img src="/empty.jpeg" id="selfie_empty" style="max-width:100%; margin-bottom:15px; width:100%" />
+                    <video id="selfie_video" class="hidden" style="width:100%;" autoplay></video>
+                  </div>
+                  <button id='open_camera' class="btn btn-primary w-100" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="openCamera('cpp')">
+                    Buka Kamera
+                  </button>
+                  <button id='take_camera' class="btn btn-primary w-100 hidden" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="takeCamera('cpp')">
+                    Ambil Gambar
+                  </button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12" style="padding: 0px 50px;">
+                  {{ csrfField() }}
+                  <div class="action-box">
+                    @if(data)
+                    @if(data.success)
+                    <div class="alert alert-success" role="alert">
+                      {{data.message}}
+                    </div>
+                    @else
+                    <div class="alert alert-danger" role="alert">
+                      Gagal membuat akun!
+                    </div>
+                    @endif
+                    @endif
+
+                    <div id="" class="">
+                      <div id="information">
+                        <div class="form-input auth">
+                          <label>NIK</label>
+                          <input name="kyc_number" type="text" class="w-100" id="kyc_number" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;" />
+                          <small id="kyc_result"></small>
+                        </div>
+                        <br />
+                        <div class="form-input auth">
+                          <label>Name</label>
+                          <input name="fullname" type="text" class="w-100" id="fullname" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <small id="fullname_result"></small>
+                        </div>
+                        <br />
+                        <div class="form-input auth">
+                          <label>Phonenumber</label>
+                          <input name="phone_number" id="phone_number" type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <small id="phone_number_result"></small>
+                          <br />
+                          <small id="phone_number_match_result"></small>
+                        </div>
+
+                    </div>
+                    </div>
+                    <br />
+                    <div class="row" style=" justify-content: center; gap:10px;">
+                      <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 150px!important;" onclick="verify('cpp')">
+                        Verifikasi
+                      </button>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-input auth">
+                          <label>JSON Response</label>
+                          <div style="background-color:silver; padding: 10px; font-size: 14px; border-radius: 5px;" id="json_response" class="hidden">
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div id="ct-form" style="border: 1px solid #F15117; padding: 20px; border-radius:10px; margin-bottom: 20px;">
+            <div class="row" >
+              <div class="col-md-12" style="padding: 0px 50px;">
+                <p class="box-title" style="color: #F15117; font-weight:bold; font-size: 22px;">Calon Tertanggung (CT)
+                </p>
+                <hr style=""/>
+              </div>
+            </div>
+            <div class="row" >
+              <div class="col-md-6" style="padding: 0px 50px;" >
+                  <p><b>Unggah KTP</b></p>
+                  <div id="validate_loading2" class="hidden"
+                    style="display: flex; flex-direction:column; gap:3px;">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Sedang melakukan pengecekan...</p>
+                  </div>
+                  <div id="box_placeholder2">
+                    <img src="/ktp_placholder.png" id="empty2" style="max-width:100%; margin-bottom:15px;" />
+                  </div>
+
+                  <div id="box_validate_face2" class="hidden">
+                    <img id="validated_face2" style="width:100%;" style="max-width:100%; margin-bottom:15px;"/>
+                  </div>
+                  <br />
+                  <input name="kyc" id="kyc_input2" type="file" class="w-100" onchange="validateKyc(event, 'ct')" />
+                  <div class="form-input no-border" style="margin-bottom: 20px;">
+                    <input name="origin_kyc2" id="origin_kyc2" type="hidden" class="w-100" />
+                  </div>
+              </div>
+              <div class="col-md-6" style="padding: 0px 50px;" >
+                  <p><b>Ambil Foto Selfie</b></p>
+                  <div id="box_selfie2">
+                    <img src="/empty.jpeg" id="selfie_empty2" style="max-width:100%; margin-bottom:15px; width:100%" />
+                    <video id="selfie_video2" class="hidden" style="width:100%;" autoplay></video>
+                  </div>
+                  <button id='open_camera2' class="btn btn-primary w-100" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="openCamera('ct')">
+                    Buka Kamera
+                  </button>
+                  <button id='take_camera2' class="btn btn-primary w-100 hidden" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="takeCamera('ct')">
+                    Ambil Gambar
+                  </button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12" style="padding: 0px 50px;">
+                  {{ csrfField() }}
+                  <div class="action-box">
+                    @if(data)
+                    @if(data.success)
+                    <div class="alert alert-success" role="alert">
+                      {{data.message}}
+                    </div>
+                    @else
+                    <div class="alert alert-danger" role="alert">
+                      Gagal membuat akun!
+                    </div>
+                    @endif
+                    @endif
+
+                    <div id="" class="">
+                      <div id="information2">
+                        <div class="form-input auth">
+                          <label>NIK</label>
+                          <input name="kyc_number2" type="text" class="w-100" id="kyc_number2" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;" />
+                          <small id="kyc_result2"></small>
+                        </div>
+                        <br />
+                        <div class="form-input auth">
+                          <label>Name</label>
+                          <input name="fullname2" type="text" class="w-100" id="fullname2" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <small id="fullname_result2"></small>
+                        </div>
+                        <br />
+                        <div class="form-input auth">
+                          <label>Phonenumber</label>
+                          <input name="phone_number2" id="phone_number2" type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <small id="phone_number_result2"></small>
+                          <br />
+                          <small id="phone_number_match_result2"></small>
+                        </div>
+                    </div>
+                    </div>
+                    <br />
+                    <div class="row" style=" justify-content: center; gap:10px;">
+                      <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 150px!important;" onclick="verify('ct')">
+                        Verifikasi
+                      </button>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-input auth">
+                          <label>JSON Response</label>
+                          <div style="background-color:silver; padding: 10px; font-size: 14px; border-radius: 5px;" id="json_response2" class="hidden">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div id="product-form" style="border: 1px solid #F15117; padding: 20px; border-radius:10px; margin-bottom: 20px;">
+            <div class="row" >
+              <div class="col-md-12" style="padding: 0px 50px;">
+                <div class="row" style=" justify-content: center; gap:10px;">
+                  <button class="btn btn-primary w-100" style="background-color: transparent; border: 1px solid #F15117; color: #F15117; width: 200px!important;" onclick="window.location.reload()">
+                    Reset Form
+                  </button>
+                  <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 200px!important;" onclick="saveRecord()">
+                    Simpan Semua Record
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let mediaStream = null;
+    let capturedFrame = null;
+    let capturedFrame2 = null;
+
+    let json_string = null;
+    let json_string2 = null;
+
+    let verifyResult2 = {
+      identity : [
+        { field: 'selfie_liveness', score: 0.203725 },
+        { field: 'fullname', value: 'Azhar Ogi, S.Kom', status: 'false' },
+        { field: 'ktp', value: '3604103012960141', status: 'true' },
+        { field: 'birth_date', value: '1996-12-30', status: 'true' },
+        { field: 'selfie_photo', status: 'true' }
+      ],
+      telco : [
+        {
+          type: "phone_active",
+          value: "6281318063888",
+          score: 1
+        },
+        {
+          type: "nik_match",
+          value: "3604103012960141",
+          score: 0
+        }
+      ]
+    }
+
+    let verifyResult = {
+      identity : [
+        { field: 'selfie_liveness', score: 0.203725 },
+        { field: 'fullname', value: 'Azhar Ogi, S.Kom', status: 'false' },
+        { field: 'ktp', value: '3604103012960141', status: 'true' },
+        { field: 'birth_date', value: '1996-12-30', status: 'true' },
+        { field: 'selfie_photo', status: 'true' }
+      ],
+      telco : [
+        {
+          type: "phone_active",
+          value: "6281318063888",
+          score: 1
+        },
+        {
+          type: "nik_match",
+          value: "3604103012960141",
+          score: 0
+        }
+      ]
+    }
+
+    let capturedBlob = null;
+    let capturedBlob2 = null;
+
+    let currentForm = 'cpp';
+    let videoElement = document.getElementById('video');
+    let productSelected = document.getElementById('product');
+
+    let kycInput = document.getElementById('kyc_input');
+    let kycInput2 = document.getElementById('kyc_input2');
+
+    let open_camera = document.getElementById('open_camera');
+    let open_camera2 = document.getElementById('open_camera2');
+
+    let take_camera = document.getElementById('take_camera');
+    let take_camera2 = document.getElementById('take_camera2');
+
+    let validatedFace = document.getElementById('validated_face');
+    let validatedFace2 = document.getElementById('validated_face2');
+
+    let boxValidatedFace = document.getElementById('box_validate_face');
+    let boxValidatedFace2 = document.getElementById('box_validate_face2');
+
+    let boxPlaceholder = document.getElementById('box_placeholder');
+    let boxPlaceholder2 = document.getElementById('box_placeholder2');
+
+    let input_information = document.getElementById('information')
+    let input_information2 = document.getElementById('information2')
+
+    let input_kyc_number = document.getElementById('kyc_number')
+    let input_kyc_number2 = document.getElementById('kyc_number2')
+
+    let input_phonenumber = document.getElementById('phone_number')
+    let input_phonenumber2 = document.getElementById('phone_number2')
+
+    let input_fullname = document.getElementById('fullname')
+    let input_fullname2 = document.getElementById('fullname2')
+
+    let origin_kyc = document.getElementById('origin_kyc')
+    let origin_kyc2 = document.getElementById('origin_kyc2')
+
+    let validate_loading = document.getElementById('validate_loading')
+    let validate_loading2 = document.getElementById('validate_loading2')
+
+    let validateLoading = document.getElementById('validate_loading');
+
+    let modalClose = document.getElementById('modal-close');
+
+    let selfie_video = document.getElementById('selfie_video');
+    let selfie_video2 = document.getElementById('selfie_video2');
+
+    let selfie_empty = document.getElementById('selfie_empty');
+    let selfie_empty2 = document.getElementById('selfie_empty2');
+
+
+    let kyc_result = document.getElementById('kyc_result')
+    let fullname_result = document.getElementById('fullname_result')
+    let phone_number_result = document.getElementById('phone_number_result')
+    let phone_number_match_result = document.getElementById('phone_number_match_result')
+
+    let kyc_result2 = document.getElementById('kyc_result2')
+    let fullname_result2 = document.getElementById('fullname_result2')
+    let phone_number_result2 = document.getElementById('phone_number_result2')
+    let phone_number_match_result2 = document.getElementById('phone_number_match_result2')
+
+    let json_response = document.getElementById('json_response')
+    let json_response2 = document.getElementById('json_response2')
+
+    let modalFooter = document.getElementById('modal_footer');
+
+
+    const galleryModal = new bootstrap.Modal(document.getElementById('submittedModal'), {
+      keyboard: false,
+      backdrop: 'static'
+    });
+    const socket = io("http://127.0.0.1:8086", {
+      transports: ["websocket"], // Use WebSocket transport
+      withCredentials: true,
+    });
+    // const socket = io("lens.staging.endavolabs.com", {
+    //   transports: ["polling"], // Use WebSocket transport
+    //   withCredentials: true,
+    // });
+    socket.on('validateKycResultV2', (data) => {
+      if(currentForm == "cpp"){
+        if(data.success){
+          validatedFace.src = "/" + data.result.image;
+          validateLoading.classList.add('hidden');
+          boxPlaceholder.classList.add('hidden');
+          boxValidatedFace.classList.remove('hidden');
+          origin_kyc.value = data.result.image;
+
+          // PUT INFORMATION KYC TO FORM
+          if(data.result?.kyc_information){
+            input_information.classList.remove('hidden');
+            input_kyc_number.value = data.result?.kyc_information?.ktp;
+            input_fullname.value = data.result?.kyc_information?.fullname;
+          }
+        } else {
+          alert('KTP tidak valid');
+          kycInput.value = '';
+        }
+        validate_loading.classList.add('hidden');
+      } else if (currentForm == "ct"){
+        if(data.success){
+          validatedFace2.src = "/" + data.result.image;
+          validateLoading.classList.add('hidden');
+          boxPlaceholder2.classList.add('hidden');
+          boxValidatedFace2.classList.remove('hidden');
+          origin_kyc2.value = data.result.image;
+          // PUT INFORMATION KYC TO FORM
+          if(data.result?.kyc_information){
+            input_information2.classList.remove('hidden');
+            input_kyc_number2.value = data.result?.kyc_information?.ktp;
+            input_fullname2.value = data.result?.kyc_information?.fullname;
+          }
+        } else {
+          alert('KTP tidak valid');
+          kycInput2.value = '';
+        }
+        validate_loading2.classList.add('hidden');
+      }
+      currentForm = 'cpp';
+    })
+
+
+    function validateKyc(file, type = 'cpp'){
+      // galleryModal.show();
+      currentForm = type;
+      socket.emit('validateKycV2', file.target.files[0]);
+      if(type == 'cpp'){
+        validate_loading.classList.remove('hidden');
+      } else if (type == 'ct'){
+        validate_loading2.classList.remove('hidden');
+      }
+      // socket.on('addFaceResult', (data) => {
+      //   console.log(data);
+      //   if(data.success){
+      //     validatedFace.src = "/" + data.result;
+      //     validateLoading.classList.add('hidden');
+      //     boxValidatedFace.classList.remove('hidden');
+      //     modalFooter.classList.remove('hidden');
+      //   }
+      // })
+    }
+
+    function openCamera(type = 'cpp'){
+      currentForm = type;
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({
+          video: true
+        }).then(function (stream) {
+          if(type == 'cpp'){
+            selfie_video.srcObject = stream;
+            selfie_video.play();
+            selfie_video.classList.remove('hidden');
+            selfie_empty.classList.add('hidden');
+            open_camera.classList.add('hidden');
+            take_camera.classList.remove('hidden');
+          } else if (type == 'ct'){
+            selfie_video2.srcObject = stream;
+            selfie_video2.play();
+            selfie_video2.classList.remove('hidden');
+            selfie_empty2.classList.add('hidden');
+            open_camera2.classList.add('hidden');
+            take_camera2.classList.remove('hidden');
+          }
+
+        }).catch(function (err) {
+          console.log("Something went wrong!");
+        });
+      }
+    }
+
+
+    function takeCamera(type = 'cpp'){
+      currentForm = type;
+      if(type == 'cpp'){
+        let canvas = document.createElement('canvas');
+        canvas.width = selfie_video.videoWidth;
+        canvas.height = selfie_video.videoHeight;
+        canvas.getContext('2d').drawImage(selfie_video, 0, 0, canvas.width, canvas.height);
+        capturedFrame = canvas.toDataURL('image/jpeg');
+        selfie_video.classList.add('hidden');
+        selfie_empty.classList.remove('hidden');
+        selfie_empty.src = capturedFrame;
+        selfie_video.srcObject.getTracks().forEach(function (track) {
+          track.stop();
+        });
+        capturedBlob = dataURItoBlob(capturedFrame);
+      } else if (type == 'ct'){
+        let canvas = document.createElement('canvas');
+        canvas.width = selfie_video2.videoWidth;
+        canvas.height = selfie_video2.videoHeight;
+        canvas.getContext('2d').drawImage(selfie_video2, 0, 0, canvas.width, canvas.height);
+        capturedFrame2 = canvas.toDataURL('image/jpeg');
+        selfie_video2.classList.add('hidden');
+        selfie_empty2.classList.remove('hidden');
+        selfie_empty2.src = capturedFrame2;
+        selfie_video2.srcObject.getTracks().forEach(function (track) {
+          track.stop();
+        });
+        capturedBlob2 = dataURItoBlob(capturedFrame2);
+      }
+    }
+
+    function dataURItoBlob(dataURI) {
+      var byteString = atob(dataURI.split(',')[1]);
+      var ab = new ArrayBuffer(byteString.length);
+      var ia = new Uint8Array(ab);
+      for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], {
+        type: 'image/jpeg'
+      });
+    }
+
+    socket.on('verifyIdentityResult', (data) => {
+
+      if(currentForm == "cpp"){
+        json_string = JSON.stringify(data, null, 2);
+        const pre = document.createElement('pre');
+        json_response.classList.remove('hidden');
+        pre.textContent = json_string;
+        json_response.appendChild(pre);
+
+        if(data.success){
+          verifyResult = data.result;
+          if(verifyResult.identity){
+            if(verifyResult.identity[2].status == 'true'){
+              kyc_result.innerHTML = "NIK sesuai di Dukcapil";
+              kyc_result.style.color = "green";
+            } else {
+              kyc_result.innerHTML = "NIK tidak sesuai di Dukcapil";
+              kyc_result.style.color = "red";
+            }
+
+            if(verifyResult.identity[1].status == 'true'){
+              fullname_result.innerHTML = "Nama sesuai di Dukcapil";
+              fullname_result.style.color = "green";
+            } else {
+              fullname_result.innerHTML = "Nama tidak sesuai di Dukcapil";
+              fullname_result.style.color = "red";
+            }
+          }
+
+          if(verifyResult.telco){
+            if(verifyResult.telco[0].score){
+              phone_number_result.innerHTML = "Nomor HP aktif";
+              phone_number_result.style.color = "green";
+            } else {
+              phone_number_result.innerHTML = "Nomor HP tidak aktif";
+              phone_number_result.style.color = "red";
+            }
+
+            if(verifyResult.telco[1].score){
+              phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
+              phone_number_match_result.style.color = "green";
+            } else {
+              phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
+              phone_number_match_result.style.color = "red";
+            }
+          } else {
+            phone_number_result.innerHTML = "Nomor HP tidak di support oleh provider";
+            phone_number_result.style.color = "red";
+          }
+        } else {
+          alert('Terjadi kesalahan, coba lagi');
+        }
+      } else if (currentForm == "ct"){
+        json_string2 = JSON.stringify(data, null, 2);
+        const pre = document.createElement('pre');
+        json_response2.classList.remove('hidden');
+        pre.textContent = json_string2;
+        json_response2.appendChild(pre);
+        if(data.success){
+          verifyResult = data.result;
+          if(verifyResult.identity){
+            if(verifyResult.identity[2].status == 'true'){
+              kyc_result2.innerHTML = "NIK sesuai di Dukcapil";
+              kyc_result2.style.color = "green";
+            } else {
+              kyc_result2.innerHTML = "NIK tidak sesuai di Dukcapil";
+              kyc_result2.style.color = "red";
+            }
+
+            if(verifyResult.identity[1].status == 'true'){
+              fullname_result2.innerHTML = "Nama sesuai di Dukcapil";
+              fullname_result2.style.color = "green";
+            } else {
+              fullname_result2.innerHTML = "Nama tidak sesuai di Dukcapil";
+              fullname_result2.style.color = "red";
+            }
+          }
+
+          if(verifyResult.telco){
+            if(verifyResult.telco[0].score){
+              phone_number_result2.innerHTML = "Nomor HP aktif";
+              phone_number_result2.style.color = "green";
+            } else {
+              phone_number_result2.innerHTML = "Nomor HP tidak aktif";
+              phone_number_result2.style.color = "red";
+            }
+
+            if(verifyResult.telco[1].score){
+              phone_number_match_result2.innerHTML = "Nomor HP sesuai NIK";
+              phone_number_match_result2.style.color = "green";
+            } else {
+              phone_number_match_result2.innerHTML = "Nomor HP tidak sesuai NIK";
+              phone_number_match_result2.style.color = "red";
+            }
+          } else {
+            phone_number_result2.innerHTML = "Nomor HP tidak di support oleh provider";
+            phone_number_result2.style.color = "red";
+          }
+        } else {
+          alert('Terjadi kesalahan, coba lagi');
+        }
+      }
+      currentForm = 'cpp';
+    })
+
+    function verify(type = 'cpp'){
+      // e.preventDefault();
+      currentForm = type;
+      console.log(type)
+      if(type == 'cpp'){
+        const sanitizeForm = {
+          nik: input_kyc_number.value,
+          name: input_fullname.value,
+          phonenumber: input_phonenumber.value,
+        }
+
+        const payload = {
+          kycFile: origin_kyc.value,
+          selfieFile: capturedBlob,
+          form: sanitizeForm
+        }
+
+        socket.emit('verifyIdentity', payload);
+      } else if(type == 'ct'){
+        const sanitizeForm = {
+          nik: input_kyc_number2.value,
+          name: input_fullname2.value,
+          phonenumber: input_phonenumber2.value,
+        }
+
+        const payload = {
+          kycFile: origin_kyc2.value,
+          selfieFile: capturedBlob2,
+          form: sanitizeForm
+        }
+        console.log(payload);
+        socket.emit('verifyIdentity', payload);
+      }
+    }
+
+    async function saveRecord(){
+      const sanitizeForm = {
+        product : productSelected.value,
+        nik : input_kyc_number.value,
+        nik_status : kyc_result.innerHTML,
+        name : input_fullname.value,
+        name_status : fullname_result.innerHTML,
+        phonenumber : input_phonenumber.value,
+        phonenumber_status : phone_number_result.innerHTML,
+        insured_nik : input_kyc_number2.value,
+        insured_nik_status : kyc_result2.innerHTML,
+        insured_name : input_fullname2.value,
+        insured_name_status : fullname_result2.innerHTML,
+        insured_phonenumber : input_phonenumber2.value,
+        insured_phonenumber_status : phone_number_result2.innerHTML,
+        kyc_image : origin_kyc.value,
+        insured_kyc_image : origin_kyc2.value,
+        selfie_image : null,
+        selfie_image_status : null,
+        insured_selfie_image : null,
+        insured_selfie_image_status : null,
+        report_json : json_string,
+        insured_report_json : json_string2
+      }
+
+      console.log(sanitizeForm);
+      const response = await axios.post('/user-verification/store', sanitizeForm);
+
+      if(response.data.success){
+        alert('Data berhasil disimpan');
+        window.location.reload();
+      } else {
+        alert('Data gagal disimpan');
+      }
+    }
+  </script>
+</body>
+
+</html>

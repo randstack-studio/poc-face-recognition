@@ -54,3 +54,8 @@ Route.get('/menu/attendance-report', 'MenuController.history').middleware(['auth
 Route.get('/menu/users', 'MenuController.users').middleware(['auth']);
 Route.get('/menu/transaction', 'MenuController.transaction').middleware(['auth']);
 
+// USER VERIFICATION
+Route.get('/menu/user-verification', 'MenuController.userVerification').middleware(['auth']);
+Route.get('/menu/user-verification/create', 'UserCheckerController.create').middleware(['auth']);
+Route.post('/user-verification/store', 'UserCheckerController.store').middleware(['auth']);
+

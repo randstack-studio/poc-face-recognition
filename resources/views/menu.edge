@@ -114,6 +114,13 @@
 
         @if(auth.role == 'admin')
         <div class="col-md-3">
+          <div class="box" onclick="window.location.href = '/menu/user-verification'">
+            <i class="bi bi-card-checklist"></i>
+            <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Verifikasi Customer</p>
+            <p class="box-description">Cek & Verifikasi Calon Nasabah</p>
+          </div>
+        </div>
+        <div class="col-md-3">
           <div class="box" onclick="window.location.href = '/menu/create-user'">
             <i class="bi bi-person-add"></i>
             <p class="box-title" style="margin-bottom: 10px; margin-top:10px;">Tambah Pengguna</p>

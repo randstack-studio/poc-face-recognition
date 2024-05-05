@@ -335,7 +335,8 @@ class FaceRecognitionController {
               // });
               // const desiredName = filteredNameWords.join(" ");
 
-              const [day, month, year] = user_information.rows[0].birth_date.split("-");
+              const [day, month, year] =
+                user_information.rows[0].birth_date.split("-");
               const formattedDate = `${year}-${month}-${day}`;
 
               console.log({
@@ -418,22 +419,22 @@ class FaceRecognitionController {
         const photoPath = Helpers.publicPath(filename);
         const sharpedFilename = `sharped_kyc_${Date.now()}.jpeg`;
         const sharpedPhotoPath = Helpers.publicPath(sharpedFilename);
-        fs.writeFile(photoPath, capturedFile, async (err) => {
-          if (err) {
-            console.error("Error saving captured image:", err);
-          } else {
-            await sharp(photoPath)
+        fs.writeFile(photoPath, capturedFile)
+          .then(() => {
+            return sharp(photoPath)
               .normalise({ lower: 3, upper: 100 })
               .modulate({
                 brightness: 1.1,
               })
               .toFormat("jpeg")
-              .toFile(Helpers.publicPath(sharpedFilename), (err, info) => {
-                console.log("INFO " + info);
-                console.log("ERROR " + err);
-              });
-          }
-        });
+              .toFile(Helpers.publicPath(sharpedFilename));
+          })
+          .then((info) => {
+            console.log(info);
+          })
+          .catch((err) => {
+            console.error("Error:", err);
+          });
         const modelsPath = Helpers.publicPath(`models`);
         const classifier = new cv.CascadeClassifier(cv.HAAR_FRONTALFACE_ALT2);
         faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
@@ -770,6 +771,168 @@ class FaceRecognitionController {
         });
       }
     });
+
+    //** BEKYC VERIFICATION WITH BOIVA V2 */
+    socket.on("validateKycV2", async (capturedFile) => {
+      console.log(capturedFile);
+      let result = null;
+      try {
+        const filename = `kyc_${Date.now()}.png`;
+        const photoPath = Helpers.publicPath(filename);
+        const sharpedFilename = `sharped_kyc_${Date.now()}.jpeg`;
+
+        await fs.promises.writeFile(photoPath, capturedFile);
+        /** BOIVA INTEGRATION KTP OCR */
+        let kyc_information = null;
+        // try {
+        //   const token = await axios.get(
+        //     "https://sandbox.boiva.id/b2b/v0/token",
+        //     {
+        //       headers: {
+        //         "Content-Type": "application/json",
+        //         "X-Client-Id": "coihi028dihs5rhsai3g",
+        //         "X-Client-Key": "coihi028dihs5rhsai40",
+        //       },
+        //     }
+        //   );
+
+        //   if (token.status == 200) {
+        //     const base64image = Buffer.from(capturedFile).toString("base64");
+        //     const ocrResponse = await axios.post(
+        //       "https://sandbox.boiva.id/b2b/v0/ktp-ocr",
+        //       {
+        //         ktp_photo: base64image,
+        //       },
+        //       {
+        //         headers: {
+        //           Authorization: token.data.token,
+        //         },
+        //       }
+        //     );
+
+        //     if (ocrResponse.status == 200) {
+        //       kyc_information = ocrResponse.data.data;
+        //     }
+        //   }
+        // } catch (error) {
+        //   console.log(error);
+        // }
+        /** BOIVA INTEGRATION KTP OCR */
+
+        result = {
+          success: 1,
+          message: "Success verify",
+          result: {
+            image: filename,
+            descriptor: "",
+            kyc_information: kyc_information,
+          },
+        };
+        // }
+      } catch (error) {
+        // console.log(error);
+        result = { success: 0, message: error.message, result: null };
+      }
+
+      console.log(result);
+      socket.emit("validateKycResultV2", result);
+    });
+
+    socket.on(
+      "verifyIdentity",
+      async ({
+        kycFile,
+        selfieFile,
+        form = { nik: "", name: "", phonenumber: "" },
+      }) => {
+        const kycPath = await fs.promises.readFile(Helpers.publicPath(kycFile));
+        const base64kyc = Buffer.from(kycPath).toString("base64");
+        const base64selfie = Buffer.from(selfieFile).toString("base64");
+        let identityResult = null
+        let telcoReuslt = null
+        let result = null
+        try {
+          /** 1. GET TOKEN */
+          const token = await axios.get(
+            "https://sandbox.boiva.id/b2b/v0/token",
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-Client-Id": "coihi028dihs5rhsai3g",
+                "X-Client-Key": "coihi028dihs5rhsai40",
+              },
+            }
+          );
+
+          console.log("token", token.data);
+          if (!token.status == 200) {
+          }
+
+          /** 2. IDENTIFY KYC */
+          const identityResponse = await axios.post(
+            "https://sandbox.boiva.id/b2b/v1/identity-verification",
+            {
+              phone_number: form.phonenumber,
+              email: "admin@randstack.com",
+              ktp: form.nik,
+              fullname: form.name,
+              birth_date: "",
+              selfie_photo: base64selfie,
+            },
+            {
+              headers: {
+                Authorization: token.data.token,
+              },
+            }
+          );
+
+          console.log("identity", identityResponse.data);
+
+          if (!identityResponse.status == 200) {
+            identityResult = null;
+          } else {
+            identityResult = identityResponse.data.fields;
+          }
+
+          /** 3. IDENTIFY PHONENUMBER */
+          const telcoResponse = await axios.post(
+            "https://sandbox.boiva.id/b2b/v0/telcos-verification",
+            {
+              phone_number: form.phonenumber,
+              ktp: base64image,
+            },
+            {
+              headers: {
+                Authorization: token.data.token,
+              },
+            }
+          );
+
+          console.log("telcoResponse", telcoResponse);
+          if (!telcoResponse.status == 200) {
+            telcoReuslt = null;
+          } else {
+            telcoReuslt = telcoResponse.data.data;
+          }
+        } catch (error) {
+          console.log("ERROR " , error.response);
+        }
+
+        result = {
+          success: 1,
+          message: "Success verify",
+          result: {
+            identity: identityResult,
+            telco: telcoReuslt,
+          },
+        };
+
+        console.log(result);
+        socket.emit("verifyIdentityResult", result)
+        // console.log(base64kyc, base64selfie);
+      }
+    );
+    //** BEKYC VERIFICATION V2 */
   }
 
   async addFace() {}
