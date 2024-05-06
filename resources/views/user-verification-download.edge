@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
+    integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+  <style>
+    .menu-container {
+      display: flex;
+      justify-content: center;
+
+
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .menu-container .menu {
+      max-width: 1185px;
+      width: 100%;
+    }
+
+    .box {
+      background-color: #FFFFFF;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+
+    .box-title {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 24px;
+      color: #000000;
+      margin-bottom: 0px;
+    }
+
+    .box-description {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 21px;
+      color: #757373;
+      margin-bottom: 0px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="menu-container">
+    <!-- <Navbar /> -->
+    <div class="menu">
+      @each((user, index) in users)
+      <br />
+        <h4>#{{index + 1}}</h4>
+        <table class="table">
+          <tbody>
+            <tr>
+              <th scope="row">Date</th>
+              <td>{{user.created_at}}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <th scope="row">Product</th>
+              <td>{{user.product}}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <th scope="row">NIK (CPP)</th>
+              <td>
+                {{user.nik}}
+              </td>
+              <td>
+                {{user.nik_status}}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Nama (CPP)</th>
+              <td>{{user.name}}</td>
+              <td>{{user.name_status}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Phonenumber (CPP)</th>
+              <td>{{user.phonenumber}}</td>
+              <td>{{user.phonenumber_status}}</td>
+            </tr>
+            <tr>
+              <th scope="row">NIK (CT)</th>
+              <td>
+                {{user.insured_nik}}
+              </td>
+              <td>
+                {{user.insured_nik_status}}
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Nama (CT)</th>
+              <td>{{user.insured_name}}</td>
+              <td>{{user.insured_name_status}}</td>
+            </tr>
+            <tr>
+              <th scope="row">Phonenumber (CT)</th>
+              <td>{{user.insured_phonenumber}}</td>
+              <td>{{user.insured_phonenumber_status}}</td>
+            </tr>
+            <tr>
+              <th scope="row">JSON (CPP | CT)</th>
+              <td style="background-color:silver; padding: 10px; font-size: 14px; border-radius: 5px; ">
+                <div class="max-height: 200px;">
+                  <pre>{{user.report_json}}</pre>
+                </div>
+              </td>
+              <td style="background-color:silver; padding: 10px; font-size: 14px; border-radius: 5px; ">
+                <div class="max-height: 200px;">
+                  <pre>{{user.insured_report_json}}</pre>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      @endeach
+    </div>
+  </div>
+  <script>
+    if("{{auth.role}}" == "user"){
+        localStorage.setItem('email', "{{auth.email}}");
+    }
+
+    window.onload = function() {
+      window.print();
+    }
+  </script>
+
+</body>
+</html>

@@ -74,13 +74,6 @@
             <button type="button" class="btn-close hidden" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <div id="validate_loading"
-              style="display: flex; justify-content:center; flex-direction:column; align-items:center; gap:3px;">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p>Sedang melakukan pengecekan...</p>
-            </div>
           </div>
           <div class="modal-footer hidden" id="modal_footer">
             {{-- <button type="button" class="btn btn-secondary hidden" data-bs-dismiss="modal">Close</button> --}}
@@ -93,7 +86,7 @@
     <div style="margin-top:20px;margin-bottom:20px; ">
       <div style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px; display:flex; align-items:center; gap:10px;">
         {{-- BACK BUTTON --}}
-        <div style="cursor:pointer;" onclick="window.location.href = '/menu'">
+        <div style="cursor:pointer;" onclick="window.location.href = '/menu/user-verification'">
           <i class="bi bi-arrow-left"></i>
         </div>
 
@@ -164,6 +157,10 @@
                   <button id='take_camera' class="btn btn-primary w-100 hidden" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="takeCamera('cpp')">
                     Ambil Gambar
                   </button>
+                  <button id='retake_camera' class="btn btn-primary w-100 hidden" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="openCamera('cpp')">
+                    Ambil Ulang Gambar
+                  </button>
+                  <small id="selfie_status"></small>
               </div>
             </div>
             <div class="row">
@@ -208,7 +205,7 @@
                     </div>
                     <br />
                     <div class="row" style=" justify-content: center; gap:10px;">
-                      <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 150px!important;" onclick="verify('cpp')">
+                      <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 150px!important;" onclick="verify('cpp')" id="verify_now">
                         Verifikasi
                       </button>
                     </div>
@@ -269,6 +266,10 @@
                   <button id='take_camera2' class="btn btn-primary w-100 hidden" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="takeCamera('ct')">
                     Ambil Gambar
                   </button>
+                  <button id='retake_camera2' class="btn btn-primary w-100 hidden" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="openCamera('ct')">
+                    Ambil Ulang Gambar
+                  </button>
+                  <small id="selfie_status2"></small>
               </div>
             </div>
             <div class="row">
@@ -312,7 +313,7 @@
                     </div>
                     <br />
                     <div class="row" style=" justify-content: center; gap:10px;">
-                      <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 150px!important;" onclick="verify('ct')">
+                      <button class="btn btn-primary w-100" style="background-color: #F15117; border: none; width: 150px!important;" onclick="verify('ct')" id="verify_now2">
                         Verifikasi
                       </button>
                     </div>
@@ -406,11 +407,17 @@
     let videoElement = document.getElementById('video');
     let productSelected = document.getElementById('product');
 
+    let verify_now = document.getElementById('verify_now');
+    let verify_now2 = document.getElementById('verify_now2');
+
     let kycInput = document.getElementById('kyc_input');
     let kycInput2 = document.getElementById('kyc_input2');
 
     let open_camera = document.getElementById('open_camera');
     let open_camera2 = document.getElementById('open_camera2');
+
+    let retake_camera = document.getElementById('retake_camera');
+    let retake_camera2 = document.getElementById('retake_camera2');
 
     let take_camera = document.getElementById('take_camera');
     let take_camera2 = document.getElementById('take_camera2');
@@ -452,6 +459,9 @@
     let selfie_empty = document.getElementById('selfie_empty');
     let selfie_empty2 = document.getElementById('selfie_empty2');
 
+    let selfie_status = document.getElementById('selfie_status');
+    let selfie_status2 = document.getElementById('selfie_status2');
+
 
     let kyc_result = document.getElementById('kyc_result')
     let fullname_result = document.getElementById('fullname_result')
@@ -473,15 +483,16 @@
       keyboard: false,
       backdrop: 'static'
     });
-    const socket = io("http://127.0.0.1:8086", {
-      transports: ["websocket"], // Use WebSocket transport
-      withCredentials: true,
-    });
-    // const socket = io("lens.staging.endavolabs.com", {
-    //   transports: ["polling"], // Use WebSocket transport
+    // const socket = io("http://127.0.0.1:8086", {
+    //   transports: ["websocket"], // Use WebSocket transport
     //   withCredentials: true,
     // });
+    const socket = io("lens.staging.endavolabs.com", {
+      transports: ["polling"], // Use WebSocket transport
+      withCredentials: true,
+    });
     socket.on('validateKycResultV2', (data) => {
+      console.log("validateKycResultV2" , data);
       if(currentForm == "cpp"){
         if(data.success){
           validatedFace.src = "/" + data.result.image;
@@ -490,11 +501,13 @@
           boxValidatedFace.classList.remove('hidden');
           origin_kyc.value = data.result.image;
 
+
           // PUT INFORMATION KYC TO FORM
           if(data.result?.kyc_information){
             input_information.classList.remove('hidden');
             input_kyc_number.value = data.result?.kyc_information?.ktp;
-            input_fullname.value = data.result?.kyc_information?.fullname;
+            // input_fullname.value = data.result?.kyc_information?.fullname;
+            input_fullname.value = data.result?.kyc_information?.fullname.includes(",") ? data.result?.kyc_information?.fullname.split(',')[0] : data.result?.kyc_information?.fullname;
           }
         } else {
           alert('KTP tidak valid');
@@ -512,7 +525,7 @@
           if(data.result?.kyc_information){
             input_information2.classList.remove('hidden');
             input_kyc_number2.value = data.result?.kyc_information?.ktp;
-            input_fullname2.value = data.result?.kyc_information?.fullname;
+            input_fullname2.value = data.result?.kyc_information?.fullname.includes(",") ? data.result?.kyc_information?.fullname.split(',')[0] : data.result?.kyc_information?.fullname;
           }
         } else {
           alert('KTP tidak valid');
@@ -529,6 +542,8 @@
       currentForm = type;
       socket.emit('validateKycV2', file.target.files[0]);
       if(type == 'cpp'){
+        console.log("CPP")
+        console.log(validate_loading)
         validate_loading.classList.remove('hidden');
       } else if (type == 'ct'){
         validate_loading2.classList.remove('hidden');
@@ -557,6 +572,7 @@
             selfie_empty.classList.add('hidden');
             open_camera.classList.add('hidden');
             take_camera.classList.remove('hidden');
+            retake_camera.classList.add('hidden');
           } else if (type == 'ct'){
             selfie_video2.srcObject = stream;
             selfie_video2.play();
@@ -564,6 +580,7 @@
             selfie_empty2.classList.add('hidden');
             open_camera2.classList.add('hidden');
             take_camera2.classList.remove('hidden');
+            retake_camera2.classList.add('hidden');
           }
 
         }).catch(function (err) {
@@ -588,6 +605,8 @@
           track.stop();
         });
         capturedBlob = dataURItoBlob(capturedFrame);
+        take_camera.classList.add('hidden');
+        retake_camera.classList.remove('hidden');
       } else if (type == 'ct'){
         let canvas = document.createElement('canvas');
         canvas.width = selfie_video2.videoWidth;
@@ -601,6 +620,8 @@
           track.stop();
         });
         capturedBlob2 = dataURItoBlob(capturedFrame2);
+        take_camera2.classList.add('hidden');
+        retake_camera2.classList.remove('hidden');
       }
     }
 
@@ -617,13 +638,14 @@
     }
 
     socket.on('verifyIdentityResult', (data) => {
-
       if(currentForm == "cpp"){
         json_string = JSON.stringify(data, null, 2);
         const pre = document.createElement('pre');
         json_response.classList.remove('hidden');
         pre.textContent = json_string;
+        json_response.innerHTML = '';
         json_response.appendChild(pre);
+        verify_now.innerHTML = "Verifikasi Ulang";
 
         if(data.success){
           verifyResult = data.result;
@@ -642,6 +664,14 @@
             } else {
               fullname_result.innerHTML = "Nama tidak sesuai di Dukcapil";
               fullname_result.style.color = "red";
+            }
+
+            if(verifyResult.identity[4].status == 'true'){
+              selfie_status.innerHTML = "Wajah sesuai di Dukcapil";
+              selfie_status.style.color = "green";
+            } else {
+              selfie_status.innerHTML = "Wajah tidak sesuai di Dukcapil";
+              selfie_status.style.color = "red";
             }
           }
 
@@ -673,7 +703,9 @@
         const pre = document.createElement('pre');
         json_response2.classList.remove('hidden');
         pre.textContent = json_string2;
+        json_response2.innerHTML = '';
         json_response2.appendChild(pre);
+        verify_now2.innerHTML = "Verifikasi Ulang";
         if(data.success){
           verifyResult = data.result;
           if(verifyResult.identity){
@@ -683,6 +715,14 @@
             } else {
               kyc_result2.innerHTML = "NIK tidak sesuai di Dukcapil";
               kyc_result2.style.color = "red";
+            }
+
+            if(verifyResult.identity[4].status == 'true'){
+              selfie_status2.innerHTML = "Wajah sesuai di Dukcapil";
+              selfie_status2.style.color = "green";
+            } else {
+              selfie_status2.innerHTML = "Wajah tidak sesuai di Dukcapil";
+              selfie_status2.style.color = "red";
             }
 
             if(verifyResult.identity[1].status == 'true'){
@@ -774,9 +814,9 @@
         kyc_image : origin_kyc.value,
         insured_kyc_image : origin_kyc2.value,
         selfie_image : null,
-        selfie_image_status : null,
+        selfie_image_status : selfie_status.innerHTML,
         insured_selfie_image : null,
-        insured_selfie_image_status : null,
+        insured_selfie_image_status : selfie_status2.innerHTML,
         report_json : json_string,
         insured_report_json : json_string2
       }

@@ -62,18 +62,49 @@
     <!-- <Navbar /> -->
     <div class="menu">
       <div style="margin-top:20px;margin-bottom:20px; ">
-        <div style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px;">
+        <div style="background-color:#F15921; color:white; padding:20px 10px; border-radius:10px; display:flex; align-items:center; gap:10px;">
+          {{-- BACK BUTTON --}}
+          <div style="cursor:pointer;" onclick="window.location.href = '/menu'">
+            <i class="bi bi-arrow-left"></i>
+          </div>
+
           <p class="txt txt-16 txt-lh-18 txt-cl-turqoise bold mb-0" style="font-size:20px; font-weight:bold;">
             Verifikasi Customer
           </p>
         </div>
       </div>
       <div class="row " style="margin-bottom: 20px;">
-        {{-- VISUALIZATION --}}
+        <div class="col-md-12">
+          <h4>OVERVIEW</h4>
+          <div class="row">
+            <div class="col-md-3">
+              <div class="box" onclick="window.location.href = '/menu/user-verification'">
+                <p class="box-description">Total Transaksi</p>
+                <h4 >{{overview.totalVerification}}</h4>
+                <small style="color: rgb(56, 183, 241);">Click to filter</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="box" onclick="window.location.href = '/menu/user-verification?tag=ya'">
+                <p class="box-description">Transaksi Terverifikasi</p>
+                <h4 >{{overview.totalSuccess}} ({{overview.percentageSuccess}}%)</h4>
+                <small style="color: rgb(56, 183, 241);">Click to filter</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="box" onclick="window.location.href = '/menu/user-verification?tag=tidak'">
+                <p class="box-description">Transaksi Belum Terverifikasi</p>
+                <h4 >{{overview.totalFailed}} ({{overview.percentageFailed}}%)</h4>
+                <small style="color: rgb(56, 183, 241);">Click to filter</small>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+      <br/>
       <div class="row " style="margin-bottom: 20px;">
         <div class="col-md-2" style="text-align: end;">
-            <button class="btn btn-primary w-100" onclick="window.location.href = '/menu/user-verification/create'">
+            <button class="btn btn-primary w-100" onclick="window.location.href = '/menu/user-verification/create'" style="background-color: #F15117; border: none; color: white;">
               + Verifikasi Customer
             </button>
         </div>
@@ -84,16 +115,16 @@
           </p>
         </div>
         <div class="col-md-2" style="text-align: end;">
-            <button class="btn btn-primary w-100" type="submit">
-              Download
+            <button class="btn btn-primary w-100" type="submit" style="background-color: transparent; border: 1px solid #F15117; color: #F15117;" onclick="window.open('/menu/user-verification/download','_blank')">
+              Download Detail
             </button>
         </div>
       </div>
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">#</th>
             <th scope="col">Date</th>
+            <th scope="col">Produk</th>
             <th scope="col">ID Number (CPP)</th>
             <th scope="col">ID Name (CPP)</th>
             <th scope="col">Phonenumber</th>
@@ -103,15 +134,46 @@
         </thead>
         <tbody>
           @each(user in users)
-          <tr>
-            <th scope="row">{{user.id}}</th>
-            <td>{{user.created_at}}</td>
-            <td>{{user.nik}}</td>
-            <td>{{user.name}}</td>
-            <td>{{user.phonenumber}}</td>
-            <td>{{user.attemps}}</td>
-            <td>{{user.tag}}</td>
-          </tr>
+            @if(tag != undefined)
+
+              @if(tag == 'tidak')
+                @if(!user.tag.includes("ya"))
+                  <tr>
+                    <td scope="row">{{user.created_at}}</td>
+                    <td>{{user.product}}</td>
+                    <td>{{user.nik}}</td>
+                    <td>{{user.name}}</td>
+                    <td>{{user.phonenumber}}</td>
+                    <td>{{user.attempts}}</td>
+                    <td>{{user.tag.includes("ya") ? "Berhasil terverifikasi" : "Belum berhasil terverifikasi "}}</td>
+                  </tr>
+                @endif
+              @else
+                @if(user.tag.includes("ya"))
+                  <tr>
+                    <td scope="row">{{user.created_at}}</td>
+                    <td>{{user.product}}</td>
+                    <td>{{user.nik}}</td>
+                    <td>{{user.name}}</td>
+                    <td>{{user.phonenumber}}</td>
+                    <td>{{user.attempts}}</td>
+                    <td>{{user.tag.includes("ya") ? "Berhasil terverifikasi" : "Belum berhasil terverifikasi "}}</td>
+                  </tr>
+                @endif
+              @endif
+            @else
+              <tr>
+                <td scope="row">{{user.created_at}}</td>
+                <td>{{user.product}}</td>
+                <td>{{user.nik}}</td>
+                <td>{{user.name}}</td>
+                <td>{{user.phonenumber}}</td>
+                <td>{{user.attempts}}</td>
+                <td>{{user.tag.includes("ya") ? "Berhasil terverifikasi" : "Belum berhasil terverifikasi "}}</td>
+              </tr>
+            @endif
+
+
           @endeach
         </tbody>
       </table>

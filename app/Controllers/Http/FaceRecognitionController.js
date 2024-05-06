@@ -784,39 +784,39 @@ class FaceRecognitionController {
         await fs.promises.writeFile(photoPath, capturedFile);
         /** BOIVA INTEGRATION KTP OCR */
         let kyc_information = null;
-        // try {
-        //   const token = await axios.get(
-        //     "https://sandbox.boiva.id/b2b/v0/token",
-        //     {
-        //       headers: {
-        //         "Content-Type": "application/json",
-        //         "X-Client-Id": "coihi028dihs5rhsai3g",
-        //         "X-Client-Key": "coihi028dihs5rhsai40",
-        //       },
-        //     }
-        //   );
+        try {
+          const token = await axios.get(
+            "https://sandbox.boiva.id/b2b/v0/token",
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "X-Client-Id": "coihi028dihs5rhsai3g",
+                "X-Client-Key": "coihi028dihs5rhsai40",
+              },
+            }
+          );
 
-        //   if (token.status == 200) {
-        //     const base64image = Buffer.from(capturedFile).toString("base64");
-        //     const ocrResponse = await axios.post(
-        //       "https://sandbox.boiva.id/b2b/v0/ktp-ocr",
-        //       {
-        //         ktp_photo: base64image,
-        //       },
-        //       {
-        //         headers: {
-        //           Authorization: token.data.token,
-        //         },
-        //       }
-        //     );
+          if (token.status == 200) {
+            const base64image = Buffer.from(capturedFile).toString("base64");
+            const ocrResponse = await axios.post(
+              "https://sandbox.boiva.id/b2b/v0/ktp-ocr",
+              {
+                ktp_photo: base64image,
+              },
+              {
+                headers: {
+                  Authorization: token.data.token,
+                },
+              }
+            );
 
-        //     if (ocrResponse.status == 200) {
-        //       kyc_information = ocrResponse.data.data;
-        //     }
-        //   }
-        // } catch (error) {
-        //   console.log(error);
-        // }
+            if (ocrResponse.status == 200) {
+              kyc_information = ocrResponse.data.data;
+            }
+          }
+        } catch (error) {
+          console.log(error);
+        }
         /** BOIVA INTEGRATION KTP OCR */
 
         result = {
@@ -835,6 +835,9 @@ class FaceRecognitionController {
       }
 
       console.log(result);
+      // setTimeout(() => {
+      //   socket.emit("validateKycResultV2", result);
+      // }, 5000)
       socket.emit("validateKycResultV2", result);
     });
 
@@ -848,12 +851,13 @@ class FaceRecognitionController {
         const kycPath = await fs.promises.readFile(Helpers.publicPath(kycFile));
         const base64kyc = Buffer.from(kycPath).toString("base64");
         const base64selfie = Buffer.from(selfieFile).toString("base64");
-        let identityResult = null
-        let telcoReuslt = null
-        let result = null
+        let identityResult = null;
+        let telcoReuslt = null;
+        let result = null;
+        let token = null;
         try {
           /** 1. GET TOKEN */
-          const token = await axios.get(
+          token = await axios.get(
             "https://sandbox.boiva.id/b2b/v0/token",
             {
               headers: {
@@ -867,7 +871,11 @@ class FaceRecognitionController {
           console.log("token", token.data);
           if (!token.status == 200) {
           }
+        } catch (error) {
+          console.log("ERROR TOKEN", error.response);
+        }
 
+        try {
           /** 2. IDENTIFY KYC */
           const identityResponse = await axios.post(
             "https://sandbox.boiva.id/b2b/v1/identity-verification",
@@ -893,7 +901,12 @@ class FaceRecognitionController {
           } else {
             identityResult = identityResponse.data.fields;
           }
+        } catch (error) {
+          console.log("ERROR COK " , error)
+          identityResult = error.response.data.errors;
+        }
 
+        try {
           /** 3. IDENTIFY PHONENUMBER */
           const telcoResponse = await axios.post(
             "https://sandbox.boiva.id/b2b/v0/telcos-verification",
@@ -915,7 +928,8 @@ class FaceRecognitionController {
             telcoReuslt = telcoResponse.data.data;
           }
         } catch (error) {
-          console.log("ERROR " , error.response);
+          console.log("ERROR ", error.response);
+          // telcoReuslt = error.response.data.errors;
         }
 
         result = {
@@ -926,9 +940,7 @@ class FaceRecognitionController {
             telco: telcoReuslt,
           },
         };
-
-        console.log(result);
-        socket.emit("verifyIdentityResult", result)
+        socket.emit("verifyIdentityResult", result);
         // console.log(base64kyc, base64selfie);
       }
     );

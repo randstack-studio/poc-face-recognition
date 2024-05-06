@@ -54,7 +54,7 @@ module.exports = {
       port: Env.get('DB_PORT', '3306'),
       user: Env.get('DB_USER', 'app'),
       password: Env.get('DB_PASSWORD', 'app'),
-      database: Env.get('DB_DATABASE', 'fr-opencv')
+      database: Env.get('DB_DATABASE', 'fr-opencv'),
     }
   },
 
