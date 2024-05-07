@@ -85,11 +85,11 @@ class MenuController {
         product: group[0].product,
         tag: group.map((user) => {
           if (
-            user.name_status.includes("tidak") ||
-            user.nik_status.includes("tidak") ||
+            user?.name_status?.includes("tidak") ||
+            user?.nik_status?.includes("tidak") ||
             // user.phonenumber_status.includes("Tidak") &&
-            user.insured_name_status.includes("tidak") ||
-            user.insured_nik_status.includes("tidak")
+            user?.insured_name_status?.includes("tidak") ||
+            user?.insured_nik_status?.includes("tidak")
             // user.insured_phonenumber_status.includes("Tidak")
           ) {
             return "tidak";
