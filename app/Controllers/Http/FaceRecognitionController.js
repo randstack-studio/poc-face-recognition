@@ -912,7 +912,7 @@ class FaceRecognitionController {
             "https://sandbox.boiva.id/b2b/v0/telcos-verification",
             {
               phone_number: form.phonenumber,
-              ktp: base64image,
+              ktp: form.nik,
             },
             {
               headers: {
