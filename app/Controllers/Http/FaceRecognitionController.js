@@ -852,21 +852,21 @@ class FaceRecognitionController {
         const base64kyc = Buffer.from(kycPath).toString("base64");
         const base64selfie = Buffer.from(selfieFile).toString("base64");
         let identityResult = null;
-        let telcoReuslt = null;
+        let telcoReuslt = {
+          phone_active: 'false',
+          phone_match: 'false',
+        };
         let result = null;
         let token = null;
         try {
           /** 1. GET TOKEN */
-          token = await axios.get(
-            "https://sandbox.boiva.id/b2b/v0/token",
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "X-Client-Id": "coihi028dihs5rhsai3g",
-                "X-Client-Key": "coihi028dihs5rhsai40",
-              },
-            }
-          );
+          token = await axios.get("https://sandbox.boiva.id/b2b/v0/token", {
+            headers: {
+              "Content-Type": "application/json",
+              "X-Client-Id": "coihi028dihs5rhsai3g",
+              "X-Client-Key": "coihi028dihs5rhsai40",
+            },
+          });
 
           console.log("token", token.data);
           if (!token.status == 200) {
@@ -902,34 +902,77 @@ class FaceRecognitionController {
             identityResult = identityResponse.data.fields;
           }
         } catch (error) {
-          console.log("ERROR COK " , error)
+          console.log("ERROR COK ", error);
           identityResult = error.response.data.errors;
         }
 
         try {
           /** 3. IDENTIFY PHONENUMBER */
-          const telcoResponse = await axios.post(
-            "https://sandbox.boiva.id/b2b/v0/telcos-verification",
+          // BOIVA API TELCO VERIFICATION
+          // const telcoResponse = await axios.post(
+          //   "https://sandbox.boiva.id/b2b/v0/telcos-verification",
+          //   {
+          //     phone_number: form.phonenumber,
+          //     ktp: form.nik,
+          //   },
+          //   {
+          //     headers: {
+          //       Authorization: token.data.token,
+          //     },
+          //   }
+          // );
+
+          // console.log("telcoResponse", telcoResponse);
+          // if (!telcoResponse.status == 200) {
+          //   telcoReuslt = null;
+          // } else {
+          //   telcoReuslt = telcoResponse.data.data;
+          // }
+
+          /** ITR API PHONE VERIFICATION */
+          const itrTokenResponse = await axios.get(
+            "http://54.238.92.49:8082/api/sahaid/v1/token",
             {
-              phone_number: form.phonenumber,
-              ktp: form.nik,
+              headers: {
+                "api-key": "3a250da4-98aa-4319-b4f4-31bfe83201e7",
+                "secret-key": "co4j9447fhkjfv76jnd0",
+              },
+            }
+          );
+
+
+          const itrToken = itrTokenResponse.data.data.access_token;
+          const telcoResponse = await axios.post(
+            "http://54.238.92.49:8082/api/sahaid/v1/phone-id",
+            {
+              phone: form.phonenumber,
             },
             {
               headers: {
-                Authorization: token.data.token,
+                Authorization: itrToken,
               },
             }
           );
 
           console.log("telcoResponse", telcoResponse);
           if (!telcoResponse.status == 200) {
-            telcoReuslt = null;
+            telcoReuslt = {
+              phone_active: 'false',
+              phone_match: 'false',
+            };
           } else {
-            telcoReuslt = telcoResponse.data.data;
+            telcoReuslt = {
+              phone_active: 'true',
+              phone_match: telcoResponse?.data?.data?.nik == form.nik ? 'true' : 'false',
+            };
           }
+          /** ITR API PHONE VERIFICATION */
         } catch (error) {
           console.log("ERROR ", error.response);
-          // telcoReuslt = error.response.data.errors;
+          telcoReuslt = {
+            phone_active: 'false',
+            phone_match: 'false',
+          };
         }
 
         result = {

@@ -676,15 +676,30 @@
           }
 
           if(verifyResult.telco){
-            if(verifyResult.telco[0].score){
+            // if(verifyResult.telco[0].score){
+            //   phone_number_result.innerHTML = "Nomor HP aktif";
+            //   phone_number_result.style.color = "green";
+            // } else {
+            //   phone_number_result.innerHTML = "Nomor HP tidak aktif";
+            //   phone_number_result.style.color = "red";
+            // }
+
+            // if(verifyResult.telco[1].score){
+            //   phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
+            //   phone_number_match_result.style.color = "green";
+            // } else {
+            //   phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
+            //   phone_number_match_result.style.color = "red";
+            // }
+
+            if(verifyResult.telco.phone_active == 'true'){
               phone_number_result.innerHTML = "Nomor HP aktif";
               phone_number_result.style.color = "green";
             } else {
               phone_number_result.innerHTML = "Nomor HP tidak aktif";
               phone_number_result.style.color = "red";
             }
-
-            if(verifyResult.telco[1].score){
+            if(verifyResult.telco.phone_match == 'true'){
               phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
               phone_number_match_result.style.color = "green";
             } else {
@@ -735,15 +750,30 @@
           }
 
           if(verifyResult.telco){
-            if(verifyResult.telco[0].score){
+            // if(verifyResult.telco[0].score){
+            //   phone_number_result.innerHTML = "Nomor HP aktif";
+            //   phone_number_result.style.color = "green";
+            // } else {
+            //   phone_number_result.innerHTML = "Nomor HP tidak aktif";
+            //   phone_number_result.style.color = "red";
+            // }
+
+            // if(verifyResult.telco[1].score){
+            //   phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
+            //   phone_number_match_result.style.color = "green";
+            // } else {
+            //   phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
+            //   phone_number_match_result.style.color = "red";
+            // }
+
+            if(verifyResult.telco.phone_active == 'true'){
               phone_number_result2.innerHTML = "Nomor HP aktif";
               phone_number_result2.style.color = "green";
             } else {
               phone_number_result2.innerHTML = "Nomor HP tidak aktif";
               phone_number_result2.style.color = "red";
             }
-
-            if(verifyResult.telco[1].score){
+            if(verifyResult.telco.phone_match == 'true'){
               phone_number_match_result2.innerHTML = "Nomor HP sesuai NIK";
               phone_number_match_result2.style.color = "green";
             } else {
@@ -804,13 +834,13 @@
         name : input_fullname.value,
         name_status : fullname_result.innerHTML,
         phonenumber : input_phonenumber.value,
-        phonenumber_status : phone_number_result.innerHTML,
+        phonenumber_status : phone_number_result.innerHTML + ',' + phone_number_match_result.innerHTML,
         insured_nik : input_kyc_number2.value,
         insured_nik_status : kyc_result2.innerHTML,
         insured_name : input_fullname2.value,
         insured_name_status : fullname_result2.innerHTML,
         insured_phonenumber : input_phonenumber2.value,
-        insured_phonenumber_status : phone_number_result2.innerHTML,
+        insured_phonenumber_status : phone_number_result2.innerHTML + ',' + phone_number_match_result2.innerHTML,
         kyc_image : origin_kyc.value,
         insured_kyc_image : origin_kyc2.value,
         selfie_image : null,
