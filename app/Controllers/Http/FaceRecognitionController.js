@@ -848,13 +848,20 @@ class FaceRecognitionController {
         selfieFile,
         form = { nik: "", name: "", phonenumber: "" },
       }) => {
-        const kycPath = await fs.promises.readFile(Helpers.publicPath(kycFile));
-        const base64kyc = Buffer.from(kycPath).toString("base64");
+
+        // if(kycFile != '' || kycFile != null){
+        //   console.log("MASUK SINI ?")
+        //   const kycPath = await fs.promises.readFile(Helpers.publicPath(kycFile));
+        //   const base64kyc = Buffer.from(kycPath).toString("base64");
+        // }
+
+        // console.log("kycFile", kycFile == '');
+        // return;
         const base64selfie = Buffer.from(selfieFile).toString("base64");
         let identityResult = null;
         let telcoReuslt = {
-          phone_active: 'false',
-          phone_match: 'false',
+          phone_active: "false",
+          phone_match: "false",
         };
         let result = null;
         let token = null;
@@ -940,38 +947,40 @@ class FaceRecognitionController {
             }
           );
 
-
           const itrToken = itrTokenResponse.data.data.access_token;
-          const telcoResponse = await axios.post(
-            "http://54.238.92.49:8082/api/sahaid/v1/phone-id",
-            {
-              phone: form.phonenumber,
-            },
-            {
-              headers: {
-                Authorization: itrToken,
+          let telcoResponse = null;
+          if (form.phonenumber != "6288899999999") {
+            telcoResponse = await axios.post(
+              "http://54.238.92.49:8082/api/sahaid/v1/phone-id",
+              {
+                phone: form.phonenumber,
               },
+              {
+                headers: {
+                  Authorization: itrToken,
+                },
+              }
+            );
+            if (!telcoResponse.status == 200) {
+              telcoReuslt = {
+                phone_active: "false",
+                phone_match: "false",
+              };
+            } else {
+              telcoReuslt = {
+                phone_active: "true",
+                phone_match:
+                  telcoResponse?.data?.data?.nik == form.nik ? "true" : "false",
+              };
             }
-          );
-
-          console.log("telcoResponse", telcoResponse);
-          if (!telcoResponse.status == 200) {
-            telcoReuslt = {
-              phone_active: 'false',
-              phone_match: 'false',
-            };
-          } else {
-            telcoReuslt = {
-              phone_active: 'true',
-              phone_match: telcoResponse?.data?.data?.nik == form.nik ? 'true' : 'false',
-            };
           }
+
           /** ITR API PHONE VERIFICATION */
         } catch (error) {
           console.log("ERROR ", error.response);
           telcoReuslt = {
-            phone_active: 'false',
-            phone_match: 'false',
+            phone_active: "false",
+            phone_match: "false",
           };
         }
 

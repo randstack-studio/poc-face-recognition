@@ -146,7 +146,7 @@
                   </div>
               </div>
               <div class="col-md-6" style="padding: 0px 50px;" >
-                  <p><b>Ambil Foto Selfie</b></p>
+                  <p><b>Ambil Foto Selfie*</b></p>
                   <div id="box_selfie">
                     <img src="/empty.jpeg" id="selfie_empty" style="max-width:100%; margin-bottom:15px; width:100%" />
                     <video id="selfie_video" class="hidden" style="width:100%;" autoplay></video>
@@ -182,7 +182,7 @@
                     <div id="" class="">
                       <div id="information">
                         <div class="form-input auth">
-                          <label>NIK</label>
+                          <label>NIK*</label>
                           <input name="kyc_number" type="text" class="w-100" id="kyc_number" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;" />
                           <small id="kyc_result"></small>
                         </div>
@@ -195,7 +195,7 @@
                         <br />
                         <div class="form-input auth">
                           <label>Phonenumber (62)</label>
-                          <input name="phone_number" id="phone_number" value="62" type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <input name="phone_number" id="phone_number" type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
                           <small id="phone_number_result"></small>
                           <br />
                           <small id="phone_number_match_result"></small>
@@ -255,7 +255,7 @@
                   </div>
               </div>
               <div class="col-md-6" style="padding: 0px 50px;" >
-                  <p><b>Ambil Foto Selfie</b></p>
+                  <p><b>Ambil Foto Selfie*</b></p>
                   <div id="box_selfie2">
                     <img src="/empty.jpeg" id="selfie_empty2" style="max-width:100%; margin-bottom:15px; width:100%" />
                     <video id="selfie_video2" class="hidden" style="width:100%;" autoplay></video>
@@ -291,7 +291,7 @@
                     <div id="" class="">
                       <div id="information2">
                         <div class="form-input auth">
-                          <label>NIK</label>
+                          <label>NIK*</label>
                           <input name="kyc_number2" type="text" class="w-100" id="kyc_number2" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;" />
                           <small id="kyc_result2"></small>
                         </div>
@@ -304,7 +304,7 @@
                         <br />
                         <div class="form-input auth">
                           <label>Phonenumber (62)</label>
-                          <input name="phone_number2" id="phone_number2" value="62" type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <input name="phone_number2" id="phone_number2"  type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
                           <small id="phone_number_result2"></small>
                           <br />
                           <small id="phone_number_match_result2"></small>
@@ -658,14 +658,17 @@
               kyc_result.style.color = "red";
             }
 
-            if(verifyResult.identity[1].status == 'true'){
-              fullname_result.innerHTML = "Nama sesuai di Dukcapil";
-              fullname_result.style.color = "green";
-            } else {
-              fullname_result.innerHTML = "Nama tidak sesuai di Dukcapil";
-              fullname_result.style.color = "red";
-            }
+            if(input_fullname.value != ''){
+              if(verifyResult.identity[1].status == 'true'){
+                fullname_result.innerHTML = "Nama sesuai di Dukcapil";
+                fullname_result.style.color = "green";
+              } else {
+                fullname_result.innerHTML = "Nama tidak sesuai di Dukcapil";
+                fullname_result.style.color = "red";
+              }
 
+
+            }
             if(verifyResult.identity[4].status == 'true'){
               selfie_status.innerHTML = "Wajah sesuai di Dukcapil";
               selfie_status.style.color = "green";
@@ -675,40 +678,42 @@
             }
           }
 
-          if(verifyResult.telco){
-            // if(verifyResult.telco[0].score){
-            //   phone_number_result.innerHTML = "Nomor HP aktif";
-            //   phone_number_result.style.color = "green";
-            // } else {
-            //   phone_number_result.innerHTML = "Nomor HP tidak aktif";
-            //   phone_number_result.style.color = "red";
-            // }
+          if(input_phonenumber.value != ''){
+            if(verifyResult.telco){
+              // if(verifyResult.telco[0].score){
+              //   phone_number_result.innerHTML = "Nomor HP aktif";
+              //   phone_number_result.style.color = "green";
+              // } else {
+              //   phone_number_result.innerHTML = "Nomor HP tidak aktif";
+              //   phone_number_result.style.color = "red";
+              // }
 
-            // if(verifyResult.telco[1].score){
-            //   phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
-            //   phone_number_match_result.style.color = "green";
-            // } else {
-            //   phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
-            //   phone_number_match_result.style.color = "red";
-            // }
+              // if(verifyResult.telco[1].score){
+              //   phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
+              //   phone_number_match_result.style.color = "green";
+              // } else {
+              //   phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
+              //   phone_number_match_result.style.color = "red";
+              // }
 
-            if(verifyResult.telco.phone_active == 'true'){
-              phone_number_result.innerHTML = "Nomor HP aktif";
-              phone_number_result.style.color = "green";
+              if(verifyResult.telco.phone_active == 'true'){
+                phone_number_result.innerHTML = "Nomor HP aktif";
+                phone_number_result.style.color = "green";
+              } else {
+                phone_number_result.innerHTML = "Nomor HP tidak aktif";
+                phone_number_result.style.color = "red";
+              }
+              if(verifyResult.telco.phone_match == 'true'){
+                phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
+                phone_number_match_result.style.color = "green";
+              } else {
+                phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
+                phone_number_match_result.style.color = "red";
+              }
             } else {
-              phone_number_result.innerHTML = "Nomor HP tidak aktif";
+              phone_number_result.innerHTML = "Nomor HP tidak di support oleh provider";
               phone_number_result.style.color = "red";
             }
-            if(verifyResult.telco.phone_match == 'true'){
-              phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
-              phone_number_match_result.style.color = "green";
-            } else {
-              phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
-              phone_number_match_result.style.color = "red";
-            }
-          } else {
-            phone_number_result.innerHTML = "Nomor HP tidak di support oleh provider";
-            phone_number_result.style.color = "red";
           }
         } else {
           alert('Terjadi kesalahan, coba lagi');
@@ -732,6 +737,7 @@
               kyc_result2.style.color = "red";
             }
 
+
             if(verifyResult.identity[4].status == 'true'){
               selfie_status2.innerHTML = "Wajah sesuai di Dukcapil";
               selfie_status2.style.color = "green";
@@ -740,50 +746,57 @@
               selfie_status2.style.color = "red";
             }
 
-            if(verifyResult.identity[1].status == 'true'){
-              fullname_result2.innerHTML = "Nama sesuai di Dukcapil";
-              fullname_result2.style.color = "green";
-            } else {
-              fullname_result2.innerHTML = "Nama tidak sesuai di Dukcapil";
-              fullname_result2.style.color = "red";
+
+            if(input_fullname2.value != ''){
+              if(verifyResult.identity[1].status == 'true'){
+                fullname_result2.innerHTML = "Nama sesuai di Dukcapil";
+                fullname_result2.style.color = "green";
+              } else {
+                fullname_result2.innerHTML = "Nama tidak sesuai di Dukcapil";
+                fullname_result2.style.color = "red";
+              }
             }
+
           }
 
-          if(verifyResult.telco){
-            // if(verifyResult.telco[0].score){
-            //   phone_number_result.innerHTML = "Nomor HP aktif";
-            //   phone_number_result.style.color = "green";
-            // } else {
-            //   phone_number_result.innerHTML = "Nomor HP tidak aktif";
-            //   phone_number_result.style.color = "red";
-            // }
+          if(input_phonenumber2.value != ''){
+            if(verifyResult.telco){
+              // if(verifyResult.telco[0].score){
+              //   phone_number_result.innerHTML = "Nomor HP aktif";
+              //   phone_number_result.style.color = "green";
+              // } else {
+              //   phone_number_result.innerHTML = "Nomor HP tidak aktif";
+              //   phone_number_result.style.color = "red";
+              // }
 
-            // if(verifyResult.telco[1].score){
-            //   phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
-            //   phone_number_match_result.style.color = "green";
-            // } else {
-            //   phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
-            //   phone_number_match_result.style.color = "red";
-            // }
+              // if(verifyResult.telco[1].score){
+              //   phone_number_match_result.innerHTML = "Nomor HP sesuai NIK";
+              //   phone_number_match_result.style.color = "green";
+              // } else {
+              //   phone_number_match_result.innerHTML = "Nomor HP tidak sesuai NIK";
+              //   phone_number_match_result.style.color = "red";
+              // }
 
-            if(verifyResult.telco.phone_active == 'true'){
-              phone_number_result2.innerHTML = "Nomor HP aktif";
-              phone_number_result2.style.color = "green";
+              if(verifyResult.telco.phone_active == 'true'){
+                phone_number_result2.innerHTML = "Nomor HP aktif";
+                phone_number_result2.style.color = "green";
+              } else {
+                phone_number_result2.innerHTML = "Nomor HP tidak aktif";
+                phone_number_result2.style.color = "red";
+              }
+              if(verifyResult.telco.phone_match == 'true'){
+                phone_number_match_result2.innerHTML = "Nomor HP sesuai NIK";
+                phone_number_match_result2.style.color = "green";
+              } else {
+                phone_number_match_result2.innerHTML = "Nomor HP tidak sesuai NIK";
+                phone_number_match_result2.style.color = "red";
+              }
             } else {
-              phone_number_result2.innerHTML = "Nomor HP tidak aktif";
+              phone_number_result2.innerHTML = "Nomor HP tidak di support oleh provider";
               phone_number_result2.style.color = "red";
             }
-            if(verifyResult.telco.phone_match == 'true'){
-              phone_number_match_result2.innerHTML = "Nomor HP sesuai NIK";
-              phone_number_match_result2.style.color = "green";
-            } else {
-              phone_number_match_result2.innerHTML = "Nomor HP tidak sesuai NIK";
-              phone_number_match_result2.style.color = "red";
-            }
-          } else {
-            phone_number_result2.innerHTML = "Nomor HP tidak di support oleh provider";
-            phone_number_result2.style.color = "red";
           }
+
         } else {
           alert('Terjadi kesalahan, coba lagi');
         }
@@ -794,12 +807,11 @@
     function verify(type = 'cpp'){
       // e.preventDefault();
       currentForm = type;
-      console.log(type)
       if(type == 'cpp'){
         const sanitizeForm = {
           nik: input_kyc_number.value,
-          name: input_fullname.value,
-          phonenumber: input_phonenumber.value,
+          name: input_fullname.value ? input_fullname.value : 'skip',
+          phonenumber: input_phonenumber.value ? input_phonenumber.value : '6288899999999',
         }
 
         const payload = {
@@ -808,12 +820,22 @@
           form: sanitizeForm
         }
 
+        if(payload.selfieFile == null){
+          alert('(CPP) Ambil foto selfie terlebih dahulu');
+          return;
+        }
+        if(sanitizeForm.nik == ''){
+          alert('(CPP) NIK tidak boleh kosong');
+          return;
+        }
+
+        console.log(payload);
         socket.emit('verifyIdentity', payload);
       } else if(type == 'ct'){
         const sanitizeForm = {
           nik: input_kyc_number2.value,
-          name: input_fullname2.value,
-          phonenumber: input_phonenumber2.value,
+          name: input_fullname2.value ? input_fullname2.value : 'skip',
+          phonenumber: input_phonenumber2.value ? input_phonenumber2.value : '6288899999999',
         }
 
         const payload = {
@@ -821,7 +843,15 @@
           selfieFile: capturedBlob2,
           form: sanitizeForm
         }
-        console.log(payload);
+
+        if(payload.selfieFile == null){
+          alert('(CT) Ambil foto selfie terlebih dahulu');
+          return;
+        }
+        if(sanitizeForm.nik == ''){
+          alert('(CT) NIK tidak boleh kosong');
+          return;
+        }
         socket.emit('verifyIdentity', payload);
       }
     }
