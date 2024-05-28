@@ -846,7 +846,7 @@ class FaceRecognitionController {
       async ({
         kycFile,
         selfieFile,
-        form = { nik: "", name: "", phonenumber: "" },
+        form = { nik: "", name: "", phonenumber: "", birthplace: "" },
       }) => {
 
         // if(kycFile != '' || kycFile != null){
@@ -892,6 +892,7 @@ class FaceRecognitionController {
               ktp: form.nik,
               fullname: form.name,
               birth_date: "",
+              birth_place: form.birthplace,
               selfie_photo: base64selfie,
             },
             {

@@ -194,6 +194,12 @@
                         </div>
                         <br />
                         <div class="form-input auth">
+                          <label>Birth Place</label>
+                          <input name="birthplace" type="text" class="w-100" id="birthplace" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <small id="birthplace_result"></small>
+                        </div>
+                        <br />
+                        <div class="form-input auth">
                           <label>Phonenumber (62)</label>
                           <input name="phone_number" id="phone_number" type="text" class="w-100" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
                           <small id="phone_number_result"></small>
@@ -300,6 +306,12 @@
                           <label>Name</label>
                           <input name="fullname2" type="text" class="w-100" id="fullname2" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
                           <small id="fullname_result2"></small>
+                        </div>
+                        <br />
+                        <div class="form-input auth">
+                          <label>Birth Place</label>
+                          <input name="birthplace2" type="text" class="w-100" id="birthplace2" placeholder="" style="border: 1px solid #F15117; border-radius:5px; height: 40px; padding: 0px 15px; text-align:center; margin-top:7px;"/>
+                          <small id="birthplace_result2"></small>
                         </div>
                         <br />
                         <div class="form-input auth">
@@ -443,6 +455,9 @@
     let input_fullname = document.getElementById('fullname')
     let input_fullname2 = document.getElementById('fullname2')
 
+    let input_birthplace = document.getElementById('birthplace')
+    let input_birthplace2 = document.getElementById('birthplace2')
+
     let origin_kyc = document.getElementById('origin_kyc')
     let origin_kyc2 = document.getElementById('origin_kyc2')
 
@@ -467,11 +482,13 @@
     let fullname_result = document.getElementById('fullname_result')
     let phone_number_result = document.getElementById('phone_number_result')
     let phone_number_match_result = document.getElementById('phone_number_match_result')
+    let birthplace_result = document.getElementById('birthplace_result')
 
     let kyc_result2 = document.getElementById('kyc_result2')
     let fullname_result2 = document.getElementById('fullname_result2')
     let phone_number_result2 = document.getElementById('phone_number_result2')
     let phone_number_match_result2 = document.getElementById('phone_number_match_result2')
+    let birthplace_result2 = document.getElementById('birthplace_result2')
 
     let json_response = document.getElementById('json_response')
     let json_response2 = document.getElementById('json_response2')
@@ -584,6 +601,7 @@
           }
 
         }).catch(function (err) {
+          console.log(err);
           console.log("Something went wrong!");
         });
       }
@@ -650,7 +668,7 @@
         if(data.success){
           verifyResult = data.result;
           if(verifyResult.identity){
-            if(verifyResult.identity[2].status == 'true'){
+            if(verifyResult.identity[3].status == 'true'){
               kyc_result.innerHTML = "NIK sesuai di Dukcapil";
               kyc_result.style.color = "green";
             } else {
@@ -659,17 +677,27 @@
             }
 
             if(input_fullname.value != ''){
-              if(verifyResult.identity[1].status == 'true'){
+              if(verifyResult.identity[2].status == 'true'){
                 fullname_result.innerHTML = "Nama sesuai di Dukcapil";
                 fullname_result.style.color = "green";
               } else {
                 fullname_result.innerHTML = "Nama tidak sesuai di Dukcapil";
                 fullname_result.style.color = "red";
               }
-
-
             }
-            if(verifyResult.identity[4].status == 'true'){
+
+            if(input_birthplace.value != ''){
+              if(verifyResult.identity[1].status == 'true'){
+                birthplace_result.innerHTML = "Tempat lahir sesuai di Dukcapil";
+                birthplace_result.style.color = "green";
+              } else {
+                birthplace_result.innerHTML = "Tempat lahir tidak sesuai di Dukcapil";
+                birthplace_result.style.color = "red";
+              }
+            }
+
+
+            if(verifyResult.identity[5].status == 'true'){
               selfie_status.innerHTML = "Wajah sesuai di Dukcapil";
               selfie_status.style.color = "green";
             } else {
@@ -729,7 +757,28 @@
         if(data.success){
           verifyResult = data.result;
           if(verifyResult.identity){
-            if(verifyResult.identity[2].status == 'true'){
+
+            if(input_birthplace2.value != ''){
+              if(verifyResult.identity[1].status == 'true'){
+                birthplace_result2.innerHTML = "Tempat lahir sesuai di Dukcapil";
+                birthplace_result2.style.color = "green";
+              } else {
+                birthplace_result2.innerHTML = "Tempat lahir tidak sesuai di Dukcapil";
+                birthplace_result2.style.color = "red";
+              }
+            }
+
+            if(input_fullname2.value != ''){
+              if(verifyResult.identity[2].status == 'true'){
+                fullname_result2.innerHTML = "Nama sesuai di Dukcapil";
+                fullname_result2.style.color = "green";
+              } else {
+                fullname_result2.innerHTML = "Nama tidak sesuai di Dukcapil";
+                fullname_result2.style.color = "red";
+              }
+            }
+
+            if(verifyResult.identity[3].status == 'true'){
               kyc_result2.innerHTML = "NIK sesuai di Dukcapil";
               kyc_result2.style.color = "green";
             } else {
@@ -738,7 +787,7 @@
             }
 
 
-            if(verifyResult.identity[4].status == 'true'){
+            if(verifyResult.identity[5].status == 'true'){
               selfie_status2.innerHTML = "Wajah sesuai di Dukcapil";
               selfie_status2.style.color = "green";
             } else {
@@ -747,15 +796,7 @@
             }
 
 
-            if(input_fullname2.value != ''){
-              if(verifyResult.identity[1].status == 'true'){
-                fullname_result2.innerHTML = "Nama sesuai di Dukcapil";
-                fullname_result2.style.color = "green";
-              } else {
-                fullname_result2.innerHTML = "Nama tidak sesuai di Dukcapil";
-                fullname_result2.style.color = "red";
-              }
-            }
+
 
           }
 
@@ -812,6 +853,7 @@
           nik: input_kyc_number.value,
           name: input_fullname.value ? input_fullname.value : 'skip',
           phonenumber: input_phonenumber.value ? input_phonenumber.value : '6288899999999',
+          birthplace: input_birthplace.value ? input_birthplace.value : 'skip'
         }
 
         const payload = {
@@ -828,14 +870,13 @@
           alert('(CPP) NIK tidak boleh kosong');
           return;
         }
-
-        console.log(payload);
         socket.emit('verifyIdentity', payload);
       } else if(type == 'ct'){
         const sanitizeForm = {
           nik: input_kyc_number2.value,
           name: input_fullname2.value ? input_fullname2.value : 'skip',
           phonenumber: input_phonenumber2.value ? input_phonenumber2.value : '6288899999999',
+          birthplace: input_birthplace2.value ? input_birthplace2.value : 'skip'
         }
 
         const payload = {
@@ -878,7 +919,11 @@
         insured_selfie_image : null,
         insured_selfie_image_status : selfie_status2.innerHTML,
         report_json : json_string,
-        insured_report_json : json_string2
+        insured_report_json : json_string2,
+        birthplace : input_birthplace.value,
+        birthplace_status : birthplace_result.innerHTML,
+        insured_birthplace : input_birthplace2.value,
+        insured_birthplace_status : birthplace_result2.innerHTML
       }
 
       console.log(sanitizeForm);
